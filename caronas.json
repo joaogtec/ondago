@@ -1,0 +1,24 @@
+[
+    {
+        "motorista": {
+            "nome": "joao",
+            "nivel": "intermedio",
+            "telefone": "932859883",
+            "avaliacao": 0.0,
+            "soma_notas": 0.0,
+            "qtd_avaliacoes": 0
+        },
+        "ponto_partida": "lagos",
+        "destino": "cordoama",
+        "vagas_totais": 3,
+        "tipo_prancha_max": "4",
+        "horario_queda": "12h",
+        "passageiros": [
+            {
+                "nome": "pedro",
+                "contacto": "999888777",
+                "timestamp": "2026-06-04T12:17:18.151171"
+            }
+        ]
+    }
+]

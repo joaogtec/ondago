@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Vaga - Boat Friends</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+
+        header {
+            background: #003580;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { color: white; font-size: 24px; }
+        header a { color: white; text-decoration: none; font-size: 14px; opacity: 0.85; }
+
+        .container { max-width: 600px; margin: 40px auto; padding: 0 16px; }
+        h2 { color: #003580; margin-bottom: 24px; font-size: 26px; }
+
+        .info-card {
+            background: #003580;
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .info-card h3 { font-size: 22px; margin-bottom: 12px; }
+        .info-card p { opacity: 0.85; margin-top: 6px; font-size: 15px; }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+        input:focus { border-color: #003580; }
+        button {
+            width: 100%;
+            background: #003580;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover { background: #0057b8; }
+
+        .passageiros { margin-top: 24px; }
+        .passageiros h4 { color: #333; margin-bottom: 12px; }
+        .passageiro-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            font-size: 14px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🌊 Boat Friends</h1>
+    <a href="/">← Voltar ao mural</a>
+</header>
+
+<div class="container">
+    <h2>Reservar vaga</h2>
+
+    <div class="info-card">
+        <h3>{{ carona.ponto_partida }} → {{ carona.destino }}</h3>
+        <p>🏄 {{ carona.motorista.nome }} &nbsp;|&nbsp; 📱 {{ carona.motorista.telefone }}</p>
+        <p>📅 {{ carona.data }} às {{ carona.horario_queda }}</p>
+        <p>🛹 Prancha máx: {{ carona.tipo_prancha_max }}</p>
+        <span class="badge">{{ carona.vagas_disponiveis }}/{{ carona.vagas_totais }} vagas disponíveis</span>
+    </div>
+
+    <div class="form-card">
+        <form method="POST">
+            <div class="form-group">
+                <label>O teu nome</label>
+                <input type="text" name="nome" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group">
+                <label>WhatsApp</label>
+                <input type="text" name="contacto" placeholder="9XXXXXXXX" required>
+            </div>
+            <button type="submit">Confirmar Reserva</button>
+        </form>
+    </div>
+
+    {% if carona.passageiros %}
+    <div class="passageiros">
+        <h4>Já confirmados ({{ carona.passageiros|length }})</h4>
+        {% for p in carona.passageiros %}
+        <div class="passageiro-item">👤 {{ p.nome }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boat Friends</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+
+        header {
+            background: #003580;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { color: white; font-size: 24px; }
+        header a {
+            background: white;
+            color: #003580;
+            padding: 10px 20px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .hero {
+            background: #003580;
+            color: white;
+            text-align: center;
+            padding: 48px 32px;
+        }
+        .hero h2 { font-size: 36px; margin-bottom: 8px; }
+        .hero p { font-size: 18px; opacity: 0.85; }
+
+        .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+        h3 { font-size: 22px; margin-bottom: 16px; color: #003580; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-info h4 { font-size: 18px; color: #222; margin-bottom: 4px; }
+        .card-info p { color: #666; font-size: 14px; margin-top: 2px; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+        .badge-ok { background: #e6f4ea; color: #2e7d32; }
+        .badge-lotada { background: #fdecea; color: #c62828; }
+
+        .card-action a {
+            background: #003580;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .card-action a:hover { background: #0057b8; }
+
+        .empty {
+            text-align: center;
+            padding: 48px;
+            color: #999;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🌊 Boat Friends</h1>
+    <a href="/nova">+ Publicar Barca</a>
+</header>
+
+<div class="hero">
+    <h2>Caronas para a queda</h2>
+    <p>Encontra uma barca ou oferece boleia para a tua praia favorita</p>
+</div>
+
+<div class="container">
+    <h3>Barcas disponíveis</h3>
+
+    {% if caronas %}
+        {% for i, c in caronas|enumerate %}
+        <div class="card">
+            <div class="card-info">
+                <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
+                <p>🏄 {{ c.motorista.nome }} &nbsp;|&nbsp; 📅 {{ c.data }} às {{ c.horario_queda }}</p>
+                <p>🛹 Prancha máx: {{ c.tipo_prancha_max }}</p>
+                {% if c.lotado %}
+                    <span class="badge badge-lotada">Lotada</span>
+                {% else %}
+                    <span class="badge badge-ok">{{ c.vagas_disponiveis }}/{{ c.vagas_totais }} vagas</span>
+                {% endif %}
+            </div>
+            <div class="card-action">
+                {% if not c.lotado %}
+                    <a href="/reservar/{{ i }}">Reservar</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">Nenhuma barca disponível no momento 🏖️</div>
+    {% endif %}
+</div>
+
+</body>
+</html>
