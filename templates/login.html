@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - OndaGo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+        header {
+            background: #003580;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { color: white; font-size: 24px; }
+        header a { color: white; text-decoration: none; font-size: 14px; opacity: 0.85; }
+
+        .container { max-width: 480px; margin: 60px auto; padding: 0 16px; }
+        h2 { color: #003580; margin-bottom: 24px; font-size: 28px; text-align: center; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+        input:focus { border-color: #003580; }
+        button {
+            width: 100%;
+            background: #003580;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover { background: #0057b8; }
+        .link { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+        .link a { color: #003580; text-decoration: none; font-weight: 600; }
+        .flash-erro {
+            background: #fdecea;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🌊 OndaGo</h1>
+    <a href="/">← Voltar ao mural</a>
+</header>
+
+<div class="container">
+    <h2>Entrar na tua conta</h2>
+    <div class="card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="POST">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="o_teu@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" placeholder="A tua senha" required>
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+        <div class="link">Ainda não tens conta? <a href="/registro">Cria uma aqui</a></div>
+    </div>
+</div>
+
+</body>
+</html>

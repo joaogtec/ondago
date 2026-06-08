@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boat Friends</title>
+    <title>OndaGo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
@@ -16,13 +16,21 @@
             align-items: center;
         }
         header h1 { color: white; font-size: 24px; }
-        header a {
+        .header-nav { display: flex; gap: 12px; align-items: center; }
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+        .btn-primary {
             background: white;
             color: #003580;
             padding: 10px 20px;
             border-radius: 24px;
             text-decoration: none;
             font-weight: bold;
+            font-size: 14px;
         }
 
         .hero {
@@ -33,6 +41,20 @@
         }
         .hero h2 { font-size: 36px; margin-bottom: 8px; }
         .hero p { font-size: 18px; opacity: 0.85; }
+
+        .flash {
+            max-width: 900px;
+            margin: 16px auto 0;
+            padding: 0 16px;
+        }
+        .flash-msg {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .flash-sucesso { background: #e6f4ea; color: #2e7d32; }
+        .flash-erro { background: #fdecea; color: #c62828; }
 
         .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
         h3 { font-size: 22px; margin-bottom: 16px; color: #003580; }
@@ -59,7 +81,6 @@
         }
         .badge-ok { background: #e6f4ea; color: #2e7d32; }
         .badge-lotada { background: #fdecea; color: #c62828; }
-
         .card-action a {
             background: #003580;
             color: white;
@@ -70,7 +91,6 @@
             font-size: 14px;
         }
         .card-action a:hover { background: #0057b8; }
-
         .empty {
             text-align: center;
             padding: 48px;
@@ -82,8 +102,17 @@
 <body>
 
 <header>
-    <h1>🌊 Boat Friends</h1>
-    <a href="/nova">+ Publicar Barca</a>
+    <h1>🌊 OndaGo</h1>
+    <div class="header-nav">
+        {% if current_user.is_authenticated %}
+            <a href="/minha_conta">Olá, {{ current_user.nome.split()[0] }}</a>
+            <a href="/nova" class="btn-primary">+ Publicar Barca</a>
+            <a href="/logout">Sair</a>
+        {% else %}
+            <a href="/login">Entrar</a>
+            <a href="/registro" class="btn-primary">Criar conta</a>
+        {% endif %}
+    </div>
 </header>
 
 <div class="hero">
@@ -91,16 +120,23 @@
     <p>Encontra uma barca ou oferece boleia para a tua praia favorita</p>
 </div>
 
+<div class="flash">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+</div>
+
 <div class="container">
     <h3>Barcas disponíveis</h3>
-
     {% if caronas %}
-        {% for i, c in caronas|enumerate %}
+        {% for c in caronas %}
         <div class="card">
             <div class="card-info">
                 <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
-                <p>🏄 {{ c.motorista.nome }} &nbsp;|&nbsp; 📅 {{ c.data }} às {{ c.horario_queda }}</p>
-                <p>🛹 Prancha máx: {{ c.tipo_prancha_max }}</p>
+                <p>🏄 {{ c.motorista.nome }} &nbsp;|&nbsp; 📅 {{ c.data }} às {{ c.hora }}</p>
+                <p>🛹 Prancha máx: {{ c.tipo_prancha }}</p>
                 {% if c.lotado %}
                     <span class="badge badge-lotada">Lotada</span>
                 {% else %}
@@ -109,7 +145,7 @@
             </div>
             <div class="card-action">
                 {% if not c.lotado %}
-                    <a href="/reservar/{{ i }}">Reservar</a>
+                    <a href="/reservar/{{ c.id }}">Reservar</a>
                 {% endif %}
             </div>
         </div>

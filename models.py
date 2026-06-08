@@ -1,41 +1,46 @@
-from dataclasses import dataclass, field
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
-@dataclass
-class Passageiro:
-    nome: str
-    contacto: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+db = SQLAlchemy()
 
-@dataclass
-class Surfista:
-    nome: str
-    nivel: str
-    telefone: str
-    avaliacao: float = 0.0
-    soma_notas: float = 0.0
-    qtd_avaliacoes: int = 0
+class Usuario(UserMixin, db.Model):
+    __tablename__ = 'usuarios'
+    id         = db.Column(db.Integer, primary_key=True)
+    nome       = db.Column(db.String(100), nullable=False)
+    email      = db.Column(db.String(150), unique=True, nullable=False)
+    telefone   = db.Column(db.String(20), nullable=False)
+    nivel      = db.Column(db.String(30), default='Iniciante')
+    senha_hash = db.Column(db.String(256), nullable=False)
+    criado_em  = db.Column(db.DateTime, default=datetime.utcnow)
 
-    @property
-    def avaliacao_display(self):
-        if self.qtd_avaliacoes == 0:
-            return "Novo"
-        return f"estrela {self.avaliacao:.1f}"
+    caronas    = db.relationship('Carona', backref='motorista', lazy=True)
+    reservas   = db.relationship('Reserva', backref='passageiro', lazy=True)
 
-@dataclass
-class CaronaSurf:
-    motorista: Surfista
-    ponto_partida: str
-    destino: str
-    vagas_totais: int
-    tipo_prancha_max: str
-    horario_queda: str
-    data: str = ""
-    passageiros: list = field(default_factory=list)
+    def set_senha(self, senha):
+        self.senha_hash = generate_password_hash(senha)
+
+    def check_senha(self, senha):
+        return check_password_hash(self.senha_hash, senha)
+
+class Carona(db.Model):
+    __tablename__ = 'caronas'
+    id              = db.Column(db.Integer, primary_key=True)
+    motorista_id    = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    ponto_partida   = db.Column(db.String(100), nullable=False)
+    destino         = db.Column(db.String(100), nullable=False)
+    data            = db.Column(db.String(10), nullable=False)
+    hora            = db.Column(db.String(5), nullable=False)
+    vagas_totais    = db.Column(db.Integer, nullable=False)
+    tipo_prancha    = db.Column(db.String(30), default='Qualquer')
+    criado_em       = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reservas        = db.relationship('Reserva', backref='carona', lazy=True)
 
     @property
     def vagas_disponiveis(self):
-        return self.vagas_totais - len(self.passageiros)
+        return self.vagas_totais - len(self.reservas)
 
     @property
     def lotado(self):
@@ -44,7 +49,14 @@ class CaronaSurf:
     @property
     def expirada(self):
         try:
-            dt = datetime.strptime(f"{self.data} {self.horario_queda}", "%d/%m/%Y %H:%M")
+            dt = datetime.strptime(f"{self.data} {self.hora}", "%d/%m/%Y %H:%M")
             return datetime.now() > dt
         except:
             return False
+
+class Reserva(db.Model):
+    __tablename__ = 'reservas'
+    id         = db.Column(db.Integer, primary_key=True)
+    carona_id  = db.Column(db.Integer, db.ForeignKey('caronas.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    criado_em  = db.Column(db.DateTime, default=datetime.utcnow)

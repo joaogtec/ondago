@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - OndaGo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+        header {
+            background: #003580;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { color: white; font-size: 24px; }
+        .header-nav { display: flex; gap: 12px; align-items: center; }
+        .header-nav a { color: white; text-decoration: none; font-size: 14px; opacity: 0.85; }
+
+        .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+        .perfil-card {
+            background: #003580;
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .avatar {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .perfil-info h2 { font-size: 22px; margin-bottom: 4px; }
+        .perfil-info p { opacity: 0.85; font-size: 14px; margin-top: 2px; }
+
+        .section { margin-bottom: 32px; }
+        .section h3 { font-size: 20px; color: #003580; margin-bottom: 16px; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .card h4 { font-size: 16px; color: #222; margin-bottom: 4px; }
+        .card p { color: #666; font-size: 14px; margin-top: 2px; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+        .badge-ok { background: #e6f4ea; color: #2e7d32; }
+        .badge-lotada { background: #fdecea; color: #c62828; }
+
+        .empty {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            color: #999;
+            font-size: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .empty a { color: #003580; font-weight: 600; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🌊 OndaGo</h1>
+    <div class="header-nav">
+        <a href="/">Mural</a>
+        <a href="/logout">Sair</a>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="perfil-card">
+        <div class="avatar">🏄</div>
+        <div class="perfil-info">
+            <h2>{{ current_user.nome }}</h2>
+            <p>📱 {{ current_user.telefone }}</p>
+            <p>🌊 Nível: {{ current_user.nivel }}</p>
+            <p>✉️ {{ current_user.email }}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>As minhas barcas</h3>
+        {% if caronas %}
+            {% for c in caronas %}
+            <div class="card">
+                <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
+                <p>📅 {{ c.data }} às {{ c.hora }}</p>
+                <p>🛹 Prancha máx: {{ c.tipo_prancha }}</p>
+                {% if c.lotado %}
+                    <span class="badge badge-lotada">Lotada</span>
+                {% else %}
+                    <span class="badge badge-ok">{{ c.vagas_disponiveis }}/{{ c.vagas_totais }} vagas</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                Ainda não publicaste nenhuma barca.<br><br>
+                <a href="/nova">+ Publicar a primeira barca</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h3>As minhas reservas</h3>
+        {% if reservas %}
+            {% for r in reservas %}
+            <div class="card">
+                <h4>{{ r.carona.ponto_partida }} → {{ r.carona.destino }}</h4>
+                <p>📅 {{ r.carona.data }} às {{ r.carona.hora }}</p>
+                <p>🏄 Motorista: {{ r.carona.motorista.nome }} | 📱 {{ r.carona.motorista.telefone }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                Ainda não tens reservas.<br><br>
+                <a href="/">Ver barcas disponíveis</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>
