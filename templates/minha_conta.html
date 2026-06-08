@@ -55,6 +55,34 @@
         }
         .card h4 { font-size: 16px; color: #222; margin-bottom: 4px; }
         .card p { color: #666; font-size: 14px; margin-top: 2px; }
+
+        .card-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .btn-editar {
+            background: #003580;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-editar:hover { background: #0057b8; }
+        .btn-cancelar {
+            background: white;
+            color: #c62828;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #c62828;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancelar:hover { background: #fdecea; }
+
         .badge {
             display: inline-block;
             padding: 4px 10px;
@@ -65,6 +93,7 @@
         }
         .badge-ok { background: #e6f4ea; color: #2e7d32; }
         .badge-lotada { background: #fdecea; color: #c62828; }
+        .badge-expirada { background: #f5f5f5; color: #999; }
 
         .empty {
             background: white;
@@ -76,6 +105,23 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .empty a { color: #003580; font-weight: 600; text-decoration: none; }
+
+        .flash-sucesso {
+            background: #e6f4ea;
+            color: #2e7d32;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .flash-erro {
+            background: #fdecea;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -89,6 +135,12 @@
 </header>
 
 <div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
 
     <div class="perfil-card">
         <div class="avatar">🏄</div>
@@ -108,10 +160,19 @@
                 <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
                 <p>📅 {{ c.data }} às {{ c.hora }}</p>
                 <p>🛹 Prancha máx: {{ c.tipo_prancha }}</p>
-                {% if c.lotado %}
+                <p>👥 {{ c.vagas_totais - c.vagas_disponiveis }}/{{ c.vagas_totais }} passageiros</p>
+                {% if c.expirada %}
+                    <span class="badge badge-expirada">Realizada</span>
+                {% elif c.lotado %}
                     <span class="badge badge-lotada">Lotada</span>
                 {% else %}
                     <span class="badge badge-ok">{{ c.vagas_disponiveis }}/{{ c.vagas_totais }} vagas</span>
+                {% endif %}
+
+                {% if not c.expirada %}
+                <div class="card-footer">
+                    <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
+                </div>
                 {% endif %}
             </div>
             {% endfor %}
@@ -131,6 +192,19 @@
                 <h4>{{ r.carona.ponto_partida }} → {{ r.carona.destino }}</h4>
                 <p>📅 {{ r.carona.data }} às {{ r.carona.hora }}</p>
                 <p>🏄 Motorista: {{ r.carona.motorista.nome }} | 📱 {{ r.carona.motorista.telefone }}</p>
+
+                {% if not r.carona.expirada %}
+                <div class="card-footer">
+                    <form method="POST" action="/cancelar_reserva/{{ r.id }}">
+                        <button type="submit" class="btn-cancelar"
+                            onclick="return confirm('Tens a certeza que queres cancelar esta reserva?')">
+                            ✕ Cancelar reserva
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                    <span class="badge badge-expirada">Realizada</span>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}

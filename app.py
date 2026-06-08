@@ -122,7 +122,60 @@ def minha_conta():
     minhas_caronas = Carona.query.filter_by(motorista_id=current_user.id).all()
     minhas_reservas = Reserva.query.filter_by(usuario_id=current_user.id).all()
     return render_template('minha_conta.html', caronas=minhas_caronas, reservas=minhas_reservas)
+@app.route('/cancelar_reserva/<int:reserva_id>', methods=['POST'])
+@login_required
+def cancelar_reserva(reserva_id):
+    reserva = Reserva.query.get_or_404(reserva_id)
 
+    if reserva.usuario_id != current_user.id:
+        flash('Nao tens permissao para cancelar esta reserva.', 'erro')
+        return redirect(url_for('minha_conta'))
+
+    if reserva.carona.expirada:
+        flash('Nao podes cancelar uma carona ja realizada.', 'erro')
+        return redirect(url_for('minha_conta'))
+
+    db.session.delete(reserva)
+    db.session.commit()
+    flash('Reserva cancelada com sucesso.', 'sucesso')
+    return redirect(url_for('minha_conta'))
+
+
+@app.route('/editar_carona/<int:carona_id>', methods=['GET', 'POST'])
+@login_required
+def editar_carona(carona_id):
+    carona = Carona.query.get_or_404(carona_id)
+
+    if carona.motorista_id != current_user.id:
+        flash('Nao tens permissao para editar esta barca.', 'erro')
+        return redirect(url_for('minha_conta'))
+
+    if carona.expirada:
+        flash('Nao podes editar uma carona ja realizada.', 'erro')
+        return redirect(url_for('minha_conta'))
+
+    if request.method == 'POST':
+        novas_vagas = int(request.form['vagas'])
+
+        if novas_vagas < len(carona.reservas):
+            flash(f'Ja tens {len(carona.reservas)} reservas. Nao podes reduzir abaixo disso.', 'erro')
+            return redirect(url_for('editar_carona', carona_id=carona_id))
+
+        data_raw = request.form['data']
+        dt = datetime.strptime(data_raw, "%Y-%m-%d")
+
+        carona.ponto_partida = request.form['origem']
+        carona.destino       = request.form['destino']
+        carona.data          = dt.strftime("%d/%m/%Y")
+        carona.hora          = request.form['hora']
+        carona.vagas_totais  = novas_vagas
+        carona.tipo_prancha  = request.form['prancha']
+
+        db.session.commit()
+        flash('Barca actualizada!', 'sucesso')
+        return redirect(url_for('minha_conta'))
+
+    return render_template('editar_carona.html', carona=carona)
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
