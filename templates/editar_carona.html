@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Publicar Barca - OndaGo{% endblock %}
+{% block title %}Editar Barca - OndaGo{% endblock %}
 
 {% block styles %}
 <style>
@@ -12,6 +12,10 @@
         margin-bottom: 24px;
         letter-spacing: -0.5px;
     }
+
+    .flash-msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+    .flash-sucesso { background: var(--green-light); color: var(--green); }
+    .flash-erro    { background: var(--red-light);   color: var(--red); }
 
     .form-card {
         background: var(--card);
@@ -77,28 +81,37 @@
 
 {% block content %}
 <div class="container">
-    <h2 class="page-title">Publicar uma barca</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <h2 class="page-title">Editar barca</h2>
     <div class="form-card">
         <form method="POST">
             <p class="section-label">A viagem</p>
             <div class="form-row">
                 <div class="form-group">
                     <label>Partida</label>
-                    <input type="text" name="origem" placeholder="Ex: Lisboa" required>
+                    <input type="text" name="origem" value="{{ carona.ponto_partida }}" required>
                 </div>
                 <div class="form-group">
                     <label>Destino</label>
-                    <input type="text" name="destino" placeholder="Ex: Peniche" required>
+                    <input type="text" name="destino" value="{{ carona.destino }}" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Data</label>
-                    <input type="date" name="data" required>
+                    {# convert dd/mm/yyyy stored value to yyyy-mm-dd for input[type=date] #}
+                    {% set parts = carona.data.split('/') %}
+                    <input type="date" name="data" value="{{ parts[2] }}-{{ parts[1] }}-{{ parts[0] }}" required>
                 </div>
                 <div class="form-group">
                     <label>Hora</label>
-                    <input type="time" name="hora" required>
+                    <input type="time" name="hora" value="{{ carona.hora }}" required>
                 </div>
             </div>
             <hr class="divider">
@@ -106,19 +119,19 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Vagas</label>
-                    <input type="number" name="vagas" min="1" max="8" value="3" required>
+                    <input type="number" name="vagas" min="{{ carona.reservas|length }}" max="8"
+                           value="{{ carona.vagas_totais }}" required>
                 </div>
                 <div class="form-group">
                     <label>Prancha máx</label>
                     <select name="prancha">
-                        <option>Shortboard</option>
-                        <option>Longboard</option>
-                        <option>SUP</option>
-                        <option>Qualquer</option>
+                        {% for opt in ['Shortboard','Longboard','SUP','Qualquer'] %}
+                            <option {% if carona.tipo_prancha == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
-            <button type="submit" class="btn-submit">🌊 Publicar Barca</button>
+            <button type="submit" class="btn-submit">Guardar alterações</button>
         </form>
     </div>
 </div>

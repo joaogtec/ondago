@@ -1,123 +1,197 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OndaGo</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+{% extends "base.html" %}
+{% block title %}OndaGo{% endblock %}
 
-        header {
-            background: #003580;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 { color: white; font-size: 24px; }
-        .header-nav { display: flex; gap: 12px; align-items: center; }
-        .header-nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            opacity: 0.85;
-        }
-        .btn-primary {
-            background: white;
-            color: #003580;
-            padding: 10px 20px;
-            border-radius: 24px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
+{% block styles %}
+<style>
+    /* ── HERO ── */
+    .hero {
+        background: #2E6B8A;
+        color: white;
+        text-align: center;
+        padding: 36px 20px 52px;
+        position: relative;
+    }
+    .hero::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0; right: 0;
+        height: 36px;
+        background: var(--bg);
+        clip-path: ellipse(55% 100% at 50% 100%);
+        transition: background 0.3s;
+    }
+    .hero h2 {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 10px;
+    }
+    .hero p {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        opacity: 0.65;
+    }
 
-        .hero {
-            background: #003580;
-            color: white;
-            text-align: center;
-            padding: 48px 32px;
-        }
-        .hero h2 { font-size: 36px; margin-bottom: 8px; }
-        .hero p { font-size: 18px; opacity: 0.85; }
+    /* ── FLASH ── */
+    .flash { max-width: 600px; margin: 16px auto 0; padding: 0 16px; }
+    .flash-msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+    .flash-sucesso { background: var(--green-light); color: var(--green); }
+    .flash-erro    { background: var(--red-light);   color: var(--red); }
 
-        .flash {
-            max-width: 900px;
-            margin: 16px auto 0;
-            padding: 0 16px;
-        }
-        .flash-msg {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .flash-sucesso { background: #e6f4ea; color: #2e7d32; }
-        .flash-erro { background: #fdecea; color: #c62828; }
+    /* ── CONTAINER ── */
+    .container { max-width: 600px; margin: 24px auto 100px; padding: 0 16px; }
+    .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
+    }
 
-        .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
-        h3 { font-size: 22px; margin-bottom: 16px; color: #003580; }
+    /* ── BARCA CARD ── */
+    .barca-card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 8px;
+        border: 0.5px solid var(--border);
+        box-shadow: 0 1px 4px var(--shadow);
+        cursor: pointer;
+        transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .barca-card:hover {
+        box-shadow: 0 4px 18px var(--shadow);
+        transform: translateY(-2px);
+    }
+    .barca-card:active { transform: scale(0.99); }
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .card-info h4 { font-size: 18px; color: #222; margin-bottom: 4px; }
-        .card-info p { color: #666; font-size: 14px; margin-top: 2px; }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 6px;
-        }
-        .badge-ok { background: #e6f4ea; color: #2e7d32; }
-        .badge-lotada { background: #fdecea; color: #c62828; }
-        .card-action a {
-            background: #003580;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .card-action a:hover { background: #0057b8; }
-        .empty {
-            text-align: center;
-            padding: 48px;
-            color: #999;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
+    .card-route {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 5px;
+    }
+    .route-arrow { color: var(--text-muted); font-weight: 400; margin: 0 5px; }
 
-<header>
-    <h1>🌊 OndaGo</h1>
-    <div class="header-nav">
-        {% if current_user.is_authenticated %}
-            <a href="/minha_conta">Olá, {{ current_user.nome.split()[0] }}</a>
-            <a href="/nova" class="btn-primary">+ Publicar Barca</a>
-            <a href="/logout">Sair</a>
-        {% else %}
-            <a href="/login">Entrar</a>
-            <a href="/registro" class="btn-primary">Criar conta</a>
-        {% endif %}
-    </div>
-</header>
+    .card-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .meta-sep { margin: 0 4px; opacity: 0.45; }
+    .meta-rating { color: #b8780a; font-weight: 600; margin-left: 3px; }
 
+    .card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .card-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    .tag-prancha {
+        font-size: 11px;
+        font-weight: 700;
+        color: #097CBA;
+        background: #EBF6FF;
+        padding: 3px 9px;
+        border-radius: 6px;
+    }
+    [data-theme="dark"] .tag-prancha { background: #0a2233; }
+
+    .badge-vagas {
+        font-size: 11px;
+        font-weight: 700;
+        color: #0F6E56;
+        background: #E8F4F0;
+        padding: 3px 9px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
+    [data-theme="dark"] .badge-vagas { background: #0d2b22; }
+
+    .badge-lotada {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--red);
+        background: var(--red-light);
+        padding: 3px 9px;
+        border-radius: 8px;
+    }
+
+    .btn-reservar {
+        background: var(--text);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: opacity 0.15s;
+    }
+    .btn-reservar:hover { opacity: 0.78; }
+    [data-theme="dark"] .btn-reservar { background: #e6edf3; color: #0d1117; }
+
+    /* ── FAB ── */
+    .fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        background: #D85A30;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 300;
+        line-height: 1;
+        text-decoration: none;
+        box-shadow: 0 4px 16px rgba(216,90,48,0.45);
+        z-index: 99;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(216,90,48,0.55); }
+    .fab:active { transform: scale(0.95); }
+
+    /* ── EMPTY ── */
+    .empty {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--text-muted);
+        font-size: 15px;
+        background: var(--card);
+        border-radius: 12px;
+        border: 0.5px solid var(--border);
+    }
+    .empty a { color: var(--hero); font-weight: 700; text-decoration: none; }
+
+    @media (max-width: 480px) {
+        .card-route { font-size: 15px; }
+        .btn-reservar { padding: 7px 13px; font-size: 12px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="hero">
-    <h2>Caronas para a queda</h2>
-    <p>Encontra uma barca ou oferece boleia para a tua praia favorita</p>
+    <h2>Caronas para a queda 🤙</h2>
+    <p>Encontra uma barca · oferece boleia · vai surfar</p>
 </div>
 
 <div class="flash">
@@ -129,31 +203,53 @@
 </div>
 
 <div class="container">
-    <h3>Barcas disponíveis</h3>
+    <p class="section-title">Barcas disponíveis</p>
+
     {% if caronas %}
         {% for c in caronas %}
-        <div class="card">
-            <div class="card-info">
-                <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
-                <p>🏄 {{ c.motorista.nome }} &nbsp;|&nbsp; 📅 {{ c.data }} às {{ c.hora }}</p>
-                <p>🛹 Prancha máx: {{ c.tipo_prancha }}</p>
-                {% if c.lotado %}
-                    <span class="badge badge-lotada">Lotada</span>
-                {% else %}
-                    <span class="badge badge-ok">{{ c.vagas_disponiveis }}/{{ c.vagas_totais }} vagas</span>
-                {% endif %}
+        <div class="barca-card" onclick="location.href='/reservar/{{ c.id }}'">
+
+            <div class="card-route">
+                {{ c.ponto_partida }}<span class="route-arrow">→</span>{{ c.destino }}
             </div>
-            <div class="card-action">
+
+            <div class="card-meta">
+                📅 {{ c.data }}
+                <span class="meta-sep">·</span>
+                🕐 {{ c.hora }}
+                <span class="meta-sep">·</span>
+                {{ c.motorista.nome.split()[0] }}{% if c.motorista.media_avaliacao %}<span class="meta-rating">⭐ {{ c.motorista.media_avaliacao }}</span>{% endif %}
+            </div>
+
+            <div class="card-bottom">
+                <div class="card-tags">
+                    <span class="tag-prancha">🏄 {{ c.tipo_prancha }}</span>
+                    {% if c.lotado %}
+                        <span class="badge-lotada">Lotada</span>
+                    {% else %}
+                        <span class="badge-vagas">{{ c.vagas_disponiveis }} vagas</span>
+                    {% endif %}
+                </div>
                 {% if not c.lotado %}
-                    <a href="/reservar/{{ c.id }}">Reservar</a>
+                    <a href="/reservar/{{ c.id }}" class="btn-reservar" onclick="event.stopPropagation()">Reservar</a>
                 {% endif %}
             </div>
+
         </div>
         {% endfor %}
     {% else %}
-        <div class="empty">Nenhuma barca disponível no momento 🏖️</div>
+        <div class="empty">
+            Nenhuma barca disponível no momento 🏖️<br><br>
+            {% if current_user.is_authenticated %}
+                <a href="/nova">+ Sê o primeiro a publicar uma barca</a>
+            {% else %}
+                <a href="/registro">Cria uma conta e publica a primeira barca</a>
+            {% endif %}
+        </div>
     {% endif %}
 </div>
 
-</body>
-</html>
+{% if current_user.is_authenticated %}
+<a href="/nova" class="fab" title="Publicar barca">+</a>
+{% endif %}
+{% endblock %}

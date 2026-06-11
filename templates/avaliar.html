@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Avaliar - OndaGo{% endblock %}
+
+{% block styles %}
+<style>
+    .container { max-width: 480px; margin: 40px auto 80px; padding: 0 16px; }
+
+    .flash-msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; font-weight: 600; }
+    .flash-sucesso { background: var(--green-light); color: var(--green); }
+    .flash-erro    { background: var(--red-light);   color: var(--red); }
+
+    .info-card {
+        background: #1C2B35;
+        color: white;
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 20px;
+    }
+    .info-card .rota { font-size: 20px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.3px; }
+    .info-card p { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+
+    .form-card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 26px 22px;
+        border: 0.5px solid var(--border);
+        box-shadow: 0 2px 12px var(--shadow);
+    }
+    .form-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 22px; color: var(--text); }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+    }
+
+    /* CSS-only star rating */
+    .stars {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .stars input { display: none; }
+    .stars label {
+        font-size: 34px;
+        cursor: pointer;
+        color: var(--border);
+        transition: color 0.15s;
+    }
+    .stars input:checked ~ label,
+    .stars label:hover,
+    .stars label:hover ~ label { color: #f5a623; }
+
+    textarea {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 15px;
+        resize: vertical;
+        min-height: 88px;
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        transition: border-color 0.15s;
+    }
+    textarea:focus { border-color: #15B8C8; }
+
+    .btn-submit {
+        width: 100%;
+        background: #1C2B35;
+        color: white;
+        padding: 13px;
+        border: none;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="info-card">
+        <div class="rota">{{ carona.ponto_partida }} → {{ carona.destino }}</div>
+        <p>📅 {{ carona.data }} às {{ carona.hora }}</p>
+    </div>
+
+    <div class="form-card">
+        <h2>Avaliar {{ avaliado.nome.split()[0] }}</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label>Nota</label>
+                <div class="stars">
+                    {% for i in [5,4,3,2,1] %}
+                    <input type="radio" name="nota" id="star{{ i }}" value="{{ i }}" {% if i == 5 %}required{% endif %}>
+                    <label for="star{{ i }}">★</label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Comentário (opcional)</label>
+                <textarea name="comentario" placeholder="Como foi a experiência?"></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Enviar avaliação</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

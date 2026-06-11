@@ -1,179 +1,222 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Conta - OndaGo</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
-        header {
-            background: #003580;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 { color: white; font-size: 24px; }
-        .header-nav { display: flex; gap: 12px; align-items: center; }
-        .header-nav a { color: white; text-decoration: none; font-size: 14px; opacity: 0.85; }
+{% extends "base.html" %}
+{% block title %}Minha Conta - OndaGo{% endblock %}
 
-        .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+{% block styles %}
+<style>
+    .container { max-width: 700px; margin: 28px auto 80px; padding: 0 16px; }
 
-        .perfil-card {
-            background: #003580;
-            color: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .avatar {
-            width: 64px;
-            height: 64px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-        .perfil-info h2 { font-size: 22px; margin-bottom: 4px; }
-        .perfil-info p { opacity: 0.85; font-size: 14px; margin-top: 2px; }
+    .flash-msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; font-weight: 600; }
+    .flash-sucesso { background: var(--green-light); color: var(--green); }
+    .flash-erro    { background: var(--red-light);   color: var(--red); }
 
-        .section { margin-bottom: 32px; }
-        .section h3 { font-size: 20px; color: #003580; margin-bottom: 16px; }
+    /* PROFILE CARD */
+    .perfil-card {
+        background: #1C2B35;
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #2E6B8A;
+        border: 3px solid rgba(255,255,255,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .upload-btn {
+        position: absolute;
+        bottom: 0; right: 0;
+        background: white;
+        color: #1C2B35;
+        border: none;
+        border-radius: 50%;
+        width: 24px; height: 24px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .perfil-info { flex: 1; min-width: 0; }
+    .perfil-info h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .perfil-info p  { font-size: 13px; opacity: 0.8; margin-top: 3px; }
+    .rating-badge {
+        background: rgba(21,184,200,0.2);
+        border-radius: 10px;
+        padding: 3px 10px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-block;
+        margin-top: 8px;
+        color: #15B8C8;
+    }
+    #foto-input { display: none; }
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .card h4 { font-size: 16px; color: #222; margin-bottom: 4px; }
-        .card p { color: #666; font-size: 14px; margin-top: 2px; }
+    /* SECTIONS */
+    .section { margin-bottom: 28px; }
+    .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
+    }
 
-        .card-footer {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .btn-editar {
-            background: #003580;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .btn-editar:hover { background: #0057b8; }
-        .btn-cancelar {
-            background: white;
-            color: #c62828;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #c62828;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-cancelar:hover { background: #fdecea; }
+    /* CARDS */
+    .card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 8px;
+        border: 0.5px solid var(--border);
+        box-shadow: 0 1px 4px var(--shadow);
+    }
+    .card h4 { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .card p  { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 6px;
-        }
-        .badge-ok { background: #e6f4ea; color: #2e7d32; }
-        .badge-lotada { background: #fdecea; color: #c62828; }
-        .badge-expirada { background: #f5f5f5; color: #999; }
+    .badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+    .badge-ok       { background: var(--green-light); color: var(--green); }
+    .badge-lotada   { background: var(--red-light);   color: var(--red); }
+    .badge-expirada { background: #f0f0f0; color: #999; }
+    [data-theme="dark"] .badge-expirada { background: #2a2a2a; }
 
-        .empty {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            text-align: center;
-            color: #999;
-            font-size: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .empty a { color: #003580; font-weight: 600; text-decoration: none; }
+    .card-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 
-        .flash-sucesso {
-            background: #e6f4ea;
-            color: #2e7d32;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-        .flash-erro {
-            background: #fdecea;
-            color: #c62828;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
+    .btn-editar {
+        background: #1C2B35;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: opacity 0.15s;
+    }
+    .btn-editar:hover { opacity: 0.8; }
 
-<header>
-    <h1>🌊 OndaGo</h1>
-    <div class="header-nav">
-        <a href="/">Mural</a>
-        <a href="/logout">Sair</a>
-    </div>
-</header>
+    .btn-avaliar {
+        background: #FFF8E1;
+        color: #b8780a;
+        padding: 8px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid #f5d97a;
+        transition: background 0.15s;
+    }
+    .btn-avaliar:hover { background: #fff3cd; }
 
+    .btn-cancelar {
+        background: white;
+        color: var(--red);
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--red);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+    .btn-cancelar:hover { background: var(--red-light); }
+
+    .empty {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 15px;
+        border: 0.5px solid var(--border);
+    }
+    .empty a { color: #2E6B8A; font-weight: 700; text-decoration: none; }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="container">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
-            <div class="flash-{{ category }}">{{ message }}</div>
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
         {% endfor %}
     {% endwith %}
 
     <div class="perfil-card">
-        <div class="avatar">🏄</div>
+        <div class="avatar-wrap">
+            <div class="avatar">
+                {% if current_user.foto_url %}
+                    <img src="/static/uploads/{{ current_user.foto_url }}" alt="Foto de perfil">
+                {% else %}
+                    🏄
+                {% endif %}
+            </div>
+            <form method="POST" action="/editar_perfil" enctype="multipart/form-data" id="foto-form">
+                <input type="file" name="foto" id="foto-input" accept=".jpg,.jpeg,.png,.webp"
+                       onchange="document.getElementById('foto-form').submit()">
+                <button type="button" class="upload-btn" onclick="document.getElementById('foto-input').click()" title="Mudar foto">✎</button>
+            </form>
+        </div>
         <div class="perfil-info">
             <h2>{{ current_user.nome }}</h2>
             <p>📱 {{ current_user.telefone }}</p>
             <p>🌊 Nível: {{ current_user.nivel }}</p>
             <p>✉️ {{ current_user.email }}</p>
+            {% if current_user.media_avaliacao %}
+                <span class="rating-badge">⭐ {{ current_user.media_avaliacao }}</span>
+            {% endif %}
         </div>
     </div>
 
     <div class="section">
-        <h3>As minhas barcas</h3>
+        <p class="section-title">As minhas barcas</p>
         {% if caronas %}
             {% for c in caronas %}
             <div class="card">
                 <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
                 <p>📅 {{ c.data }} às {{ c.hora }}</p>
-                <p>🛹 Prancha máx: {{ c.tipo_prancha }}</p>
+                <p>🛹 Prancha: {{ c.tipo_prancha }}</p>
                 <p>👥 {{ c.vagas_totais - c.vagas_disponiveis }}/{{ c.vagas_totais }} passageiros</p>
                 {% if c.expirada %}
                     <span class="badge badge-expirada">Realizada</span>
                 {% elif c.lotado %}
                     <span class="badge badge-lotada">Lotada</span>
                 {% else %}
-                    <span class="badge badge-ok">{{ c.vagas_disponiveis }}/{{ c.vagas_totais }} vagas</span>
+                    <span class="badge badge-ok">{{ c.vagas_disponiveis }} vagas livres</span>
                 {% endif %}
-
-                {% if not c.expirada %}
                 <div class="card-footer">
-                    <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
+                    {% if not c.expirada %}
+                        <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
+                    {% endif %}
+                    {% if c.expirada %}
+                        {% for r in c.reservas %}
+                            {% if (c.id, r.usuario_id) not in avaliacoes_feitas %}
+                                <a href="/avaliar/{{ c.id }}/{{ r.usuario_id }}" class="btn-avaliar">
+                                    ⭐ Avaliar {{ r.passageiro.nome.split()[0] }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
             {% endfor %}
         {% else %}
@@ -185,26 +228,31 @@
     </div>
 
     <div class="section">
-        <h3>As minhas reservas</h3>
+        <p class="section-title">As minhas reservas</p>
         {% if reservas %}
             {% for r in reservas %}
             <div class="card">
                 <h4>{{ r.carona.ponto_partida }} → {{ r.carona.destino }}</h4>
                 <p>📅 {{ r.carona.data }} às {{ r.carona.hora }}</p>
                 <p>🏄 Motorista: {{ r.carona.motorista.nome }} | 📱 {{ r.carona.motorista.telefone }}</p>
-
-                {% if not r.carona.expirada %}
-                <div class="card-footer">
-                    <form method="POST" action="/cancelar_reserva/{{ r.id }}">
-                        <button type="submit" class="btn-cancelar"
-                            onclick="return confirm('Tens a certeza que queres cancelar esta reserva?')">
-                            ✕ Cancelar reserva
-                        </button>
-                    </form>
-                </div>
-                {% else %}
+                {% if r.carona.expirada %}
                     <span class="badge badge-expirada">Realizada</span>
                 {% endif %}
+                <div class="card-footer">
+                    {% if not r.carona.expirada %}
+                        <form method="POST" action="/cancelar_reserva/{{ r.id }}">
+                            <button type="submit" class="btn-cancelar"
+                                onclick="return confirm('Tens a certeza que queres cancelar esta reserva?')">
+                                ✕ Cancelar reserva
+                            </button>
+                        </form>
+                    {% endif %}
+                    {% if r.carona.expirada and (r.carona_id, r.carona.motorista_id) not in avaliacoes_feitas %}
+                        <a href="/avaliar/{{ r.carona_id }}/{{ r.carona.motorista_id }}" class="btn-avaliar">
+                            ⭐ Avaliar motorista
+                        </a>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         {% else %}
@@ -216,6 +264,4 @@
     </div>
 
 </div>
-
-</body>
-</html>
+{% endblock %}

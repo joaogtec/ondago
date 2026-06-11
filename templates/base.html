@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OndaGo{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:          #F5F2ED;
+            --card:        #ffffff;
+            --text:        #2C2420;
+            --text-muted:  #7A6F65;
+            --border:      #E2DBD0;
+            --shadow:      rgba(44,36,32,0.06);
+            --nav:         #1C2B35;
+            --teal:        #15B8C8;
+            --hero:        #2E6B8A;
+            --green:       #0F6E56;
+            --green-light: #E8F4F0;
+            --red:         #c62828;
+            --red-light:   #fdecea;
+            --orange:      #D85A30;
+        }
+        [data-theme="dark"] {
+            --bg:          #0d1117;
+            --card:        #161b22;
+            --text:        #e6edf3;
+            --text-muted:  #8b949e;
+            --border:      #30363d;
+            --shadow:      rgba(0,0,0,0.4);
+            --green-light: #0d2b22;
+            --hero:        #1a3f52;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━
+           NAVBAR
+        ━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .navbar {
+            background: #1C2B35;
+            height: 52px;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            height: 100%;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Logo */
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: baseline;
+            gap: 3px;
+        }
+        .logo-dot { color: #15B8C8; font-size: 22px; line-height: 1; }
+
+        /* Center links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: color 0.15s;
+            white-space: nowrap;
+        }
+        .nav-link:hover { color: #ffffff; }
+        .nav-link.active {
+            color: #ffffff;
+            border-bottom: 2px solid #15B8C8;
+            border-radius: 0;
+            padding-bottom: 3px;
+        }
+
+        /* Right cluster */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.2); }
+
+        /* User avatar */
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #2E6B8A;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        /* Register CTA button */
+        .nav-btn {
+            background: #15B8C8;
+            color: #0d1e26;
+            padding: 7px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+        .nav-btn:hover { opacity: 0.88; }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            width: 32px;
+            height: 32px;
+        }
+        .hamburger span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 640px) {
+            .hamburger { display: flex; }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 52px;
+                left: 0;
+                right: 0;
+                background: #1C2B35;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 10px 16px 16px;
+                gap: 2px;
+                border-top: 1px solid rgba(255,255,255,0.08);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+            }
+            .nav-links.open { display: flex; }
+
+            .nav-link { padding: 10px 12px; border-radius: 8px; }
+            .nav-link.active {
+                border-bottom: none;
+                border-left: 3px solid #15B8C8;
+                padding-left: 10px;
+                background: rgba(21,184,200,0.08);
+            }
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-inner">
+
+        <a href="/" class="nav-logo">OndaGo<span class="logo-dot">•</span></a>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/"
+               class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Mural</a>
+            {% if current_user.is_authenticated %}
+                <a href="/minha_conta"
+                   class="nav-link {% if request.endpoint == 'minha_conta' %}active{% endif %}">Minha Conta</a>
+            {% endif %}
+        </div>
+
+        <div class="nav-right">
+            <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Modo escuro">🌙</button>
+
+            {% if current_user.is_authenticated %}
+                <div class="nav-avatar" title="{{ current_user.nome }}">{{ current_user.nome.split()[0][0] }}{% if current_user.nome.split()|length > 1 %}{{ current_user.nome.split()[-1][0] }}{% endif %}</div>
+                <a href="/logout" class="nav-link">Sair</a>
+            {% else %}
+                <a href="/login"
+                   class="nav-link {% if request.endpoint == 'login' %}active{% endif %}">Entrar</a>
+                <a href="/registro" class="nav-btn">Criar conta</a>
+            {% endif %}
+
+            <button class="hamburger" onclick="toggleNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+    </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<script>
+    function toggleTheme() {
+        const html = document.documentElement;
+        const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('ondago-theme', next);
+        document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+    }
+    function toggleNav() {
+        document.getElementById('nav-links').classList.toggle('open');
+    }
+    (function () {
+        const saved = localStorage.getItem('ondago-theme');
+        if (saved) {
+            document.documentElement.setAttribute('data-theme', saved);
+            if (saved === 'dark') {
+                const btn = document.getElementById('theme-btn');
+                if (btn) btn.textContent = '☀️';
+            }
+        }
+    })();
+</script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

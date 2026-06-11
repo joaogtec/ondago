@@ -1,108 +1,99 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar conta - OndaGo</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
-        header {
-            background: #003580;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 { color: white; font-size: 24px; }
-        header a { color: white; text-decoration: none; font-size: 14px; opacity: 0.85; }
+{% extends "base.html" %}
+{% block title %}Criar conta - OndaGo{% endblock %}
 
-        .container { max-width: 480px; margin: 60px auto; padding: 0 16px; }
-        h2 { color: #003580; margin-bottom: 24px; font-size: 28px; text-align: center; }
+{% block styles %}
+<style>
+    .container { max-width: 480px; margin: 48px auto 80px; padding: 0 16px; }
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 6px;
-            font-size: 14px;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-        }
-        input:focus, select:focus { border-color: #003580; }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        button {
-            width: 100%;
-            background: #003580;
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        button:hover { background: #0057b8; }
-        .link { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
-        .link a { color: #003580; text-decoration: none; font-weight: 600; }
-        .flash-erro {
-            background: #fdecea;
-            color: #c62828;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-        .divider {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 20px 0;
-        }
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-        }
-    </style>
-</head>
-<body>
+    .page-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 24px;
+        letter-spacing: -0.5px;
+    }
 
-<header>
-    <h1>🌊 OndaGo</h1>
-    <a href="/">← Voltar ao mural</a>
-</header>
+    .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 32px;
+        border: 0.5px solid var(--border);
+        box-shadow: 0 2px 12px var(--shadow);
+    }
 
+    .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 16px;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 7px;
+    }
+    input, select {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: inherit;
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: #15B8C8; }
+
+    .btn-submit {
+        width: 100%;
+        background: #1C2B35;
+        color: white;
+        padding: 13px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+
+    .link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+    .link a { color: #2E6B8A; text-decoration: none; font-weight: 700; }
+
+    .flash-msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+    .flash-sucesso { background: var(--green-light); color: var(--green); }
+    .flash-erro    { background: var(--red-light);   color: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="container">
-    <h2>Criar conta</h2>
+    <h2 class="page-title">Criar conta</h2>
     <div class="card">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
-                <div class="flash-{{ category }}">{{ message }}</div>
+                <div class="flash-msg flash-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endwith %}
         <form method="POST">
-            <p class="section-title">Os teus dados</p>
+            <p class="section-label">Os teus dados</p>
             <div class="form-group">
                 <label>Nome completo</label>
                 <input type="text" name="nome" placeholder="O teu nome" required>
@@ -127,16 +118,14 @@
                 </div>
             </div>
             <hr class="divider">
-            <p class="section-title">Segurança</p>
+            <p class="section-label">Segurança</p>
             <div class="form-group">
                 <label>Senha</label>
                 <input type="password" name="senha" placeholder="Mínimo 6 caracteres" required>
             </div>
-            <button type="submit">Criar conta</button>
+            <button type="submit" class="btn-submit">Criar conta</button>
         </form>
         <div class="link">Já tens conta? <a href="/login">Entra aqui</a></div>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
