@@ -259,7 +259,11 @@ def editar_perfil():
 def minha_conta():
     minhas_caronas  = Carona.query.filter_by(motorista_id=current_user.id).all()
     minhas_reservas = Reserva.query.filter_by(usuario_id=current_user.id).all()
-    return render_template('minha_conta.html', caronas=minhas_caronas, reservas=minhas_reservas)
+    avaliacoes_feitas = {
+        a.carona_id for a in Avaliacao.query.filter_by(avaliador_id=current_user.id).all()
+    }
+    return render_template('minha_conta.html', caronas=minhas_caronas, reservas=minhas_reservas,
+                           avaliacoes_feitas=avaliacoes_feitas)
 
 @app.route('/avaliar/<int:carona_id>', methods=['GET', 'POST'])
 @login_required
