@@ -28,8 +28,24 @@ O OndaGo conecta surfistas que precisam de carona com quem tem espaço no carro 
 
 - 📋 Publica a tua barca com destino, data, hora e vagas
 - 🔍 Vê as barcas disponíveis no mural
-- ✅ Reserva uma vaga com o teu nome e WhatsApp
+- ✅ Reserva uma vaga e cancela se precisares
+- ⭐ Avalia o motorista ou os passageiros após a carona
+- 👤 Perfil com foto, nível de surf e histórico de viagens
 - ⏱️ Caronas expiradas saem automaticamente do mural
+
+---
+
+## Funcionalidades
+
+- Login e registo com password encriptada (Werkzeug)
+- Foto de perfil com upload e redimensionamento automático
+- Sistema de avaliações mútuas — motorista avalia passageiro e vice-versa
+- Cancelar reserva (enquanto a carona não expirou)
+- Editar barca (destino, data, hora, vagas, tipo de prancha)
+- Dark mode com preferência guardada no browser
+- Design mobile-first responsivo
+- Rate limiting contra ataques de força bruta (Flask-Limiter)
+- Variáveis de ambiente para dados sensíveis (.env)
 
 ---
 
@@ -37,9 +53,13 @@ O OndaGo conecta surfistas que precisam de carona com quem tem espaço no carro 
 
 - **Python 3** — lógica e backend
 - **Flask** — servidor web
+- **SQLite + SQLAlchemy** — base de dados relacional
+- **Flask-Login** — gestão de sessões autenticadas
+- **Werkzeug** — hash seguro de passwords
+- **Pillow** — processamento de imagens de perfil
+- **Flask-Limiter** — rate limiting por IP
+- **python-dotenv** — variáveis de ambiente
 - **HTML/CSS** — interface
-- **JSON** — persistência de dados
-- **Dataclasses** — modelagem de dados
 
 ---
 
@@ -56,7 +76,10 @@ python -m venv .venv
 source .venv/bin/activate  # Mac/Linux
 
 # Instalar dependências
-pip install flask
+pip install flask flask-sqlalchemy flask-login werkzeug pillow python-dotenv flask-limiter
+
+# Criar o ficheiro .env
+echo SECRET_KEY=coloca_aqui_uma_chave_aleatoria > .env
 
 # Rodar o app
 python app.py
@@ -70,26 +93,30 @@ Abre o browser em `http://127.0.0.1:5000`
 
 ```
 ondago/
-├── app.py              # Rotas Flask
-├── models.py           # Modelos de dados
-├── utils.py            # Leitura e escrita JSON
-├── caronas.json        # Base de dados local
+├── app.py
+├── models.py
+├── .env
+├── static/uploads/
 └── templates/
-    ├── index.html      # Mural de caronas
-    ├── nova_carona.html # Publicar barca
-    └── reservar.html   # Reservar vaga
+    ├── base.html
+    ├── index.html
+    ├── nova_carona.html
+    ├── reservar.html
+    ├── login.html
+    ├── registro.html
+    ├── minha_conta.html
+    ├── avaliar.html
+    └── editar_carona.html
 ```
 
 ---
 
 ## Próximos passos
 
-- [ ] Migrar para SQLite
-- [ ] Sistema de login
-- [ ] Cancelar reserva
-- [ ] Notificação via WhatsApp
-- [ ] Expandir para outros desportos de natureza
-- [ ] Criar comunidade dentro do app — perfis, conquistas, spots favoritos
+- [ ] Notificações via WhatsApp
+- [ ] Deploy online
+- [ ] Expansão para outros desportos de natureza
+- [ ] Sistema de comunidade — spots favoritos, conquistas, perfis
 
 ---
 

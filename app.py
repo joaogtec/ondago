@@ -288,14 +288,21 @@ def avaliar(carona_id):
         pessoas_a_avaliar = [carona.motorista]
         tipo = 'motorista'
 
+    ja_avaliou = Avaliacao.query.filter_by(
+        avaliador_id=current_user.id,
+        carona_id=carona_id
+    ).first()
+    if ja_avaliou:
+        flash('Ja avaliaste esta carona.', 'erro')
+        return redirect(url_for('minha_conta'))
+
     if request.method == 'POST':
-        for pessoa in pessoas_a_avaliar:
-            ja_avaliou = Avaliacao.query.filter_by(
-                avaliador_id=current_user.id,
-                avaliado_id=pessoa.id,
-                carona_id=carona_id
-            ).first()
-            if not ja_avaliou:
+        ja_avaliou_post = Avaliacao.query.filter_by(
+            avaliador_id=current_user.id,
+            carona_id=carona_id
+        ).first()
+        if not ja_avaliou_post:
+            for pessoa in pessoas_a_avaliar:
                 nota = max(1.0, min(5.0, float(request.form.get(f'nota_{pessoa.id}', 5))))
                 comentario = request.form.get(f'comentario_{pessoa.id}', '').strip()[:300]
                 avaliacao = Avaliacao(

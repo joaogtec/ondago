@@ -275,8 +275,10 @@
                 </div>
                 {% if not c.expirada %}
     <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
-{% else %}
+{% elif c.id not in avaliacoes_feitas %}
     <a href="/avaliar/{{ c.id }}" class="btn-editar">⭐ Avaliar</a>
+{% else %}
+    <span class="badge-realizada">Avaliada ✓</span>
 {% endif %}
                     
                 
@@ -316,8 +318,10 @@
         ✕ Cancelar
     </button>
 </form>
-{% else %}
+{% elif r.carona.id not in avaliacoes_feitas %}
     <a href="/avaliar/{{ r.carona.id }}" class="btn-editar">⭐ Avaliar</a>
+{% else %}
+    <span class="badge-realizada">Avaliada ✓</span>
 {% endif %}
             </div>
         </div>
