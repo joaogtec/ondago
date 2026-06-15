@@ -3,67 +3,12 @@
 
 {% block styles %}
 <style>
-    .container { max-width: 700px; margin: 28px auto 80px; padding: 0 16px; }
+    .container { max-width: 600px; margin: 24px auto 100px; padding: 0 16px; }
 
     .flash-msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; font-weight: 600; }
     .flash-sucesso { background: var(--green-light); color: var(--green); }
     .flash-erro    { background: var(--red-light);   color: var(--red); }
 
-    /* PROFILE CARD */
-    .perfil-card {
-        background: #1C2B35;
-        color: white;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 28px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    .avatar-wrap { position: relative; flex-shrink: 0; }
-    .avatar {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        background: #2E6B8A;
-        border: 3px solid rgba(255,255,255,0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-        overflow: hidden;
-    }
-    .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .upload-btn {
-        position: absolute;
-        bottom: 0; right: 0;
-        background: white;
-        color: #1C2B35;
-        border: none;
-        border-radius: 50%;
-        width: 24px; height: 24px;
-        font-size: 13px;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    }
-    .perfil-info { flex: 1; min-width: 0; }
-    .perfil-info h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-    .perfil-info p  { font-size: 13px; opacity: 0.8; margin-top: 3px; }
-    .rating-badge {
-        background: rgba(21,184,200,0.2);
-        border-radius: 10px;
-        padding: 3px 10px;
-        font-size: 13px;
-        font-weight: 700;
-        display: inline-block;
-        margin-top: 8px;
-        color: #15B8C8;
-    }
-    #foto-input { display: none; }
-
-    /* SECTIONS */
-    .section { margin-bottom: 28px; }
     .section-title {
         font-size: 11px;
         font-weight: 700;
@@ -73,82 +18,186 @@
         margin-bottom: 14px;
     }
 
-    /* CARDS */
-    .card {
+    /* ── PERFIL CARD ── */
+    .perfil-card {
         background: var(--card);
         border-radius: 12px;
-        padding: 18px 20px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 0.5px solid var(--border);
+        box-shadow: 0 1px 4px var(--shadow);
+    }
+    .perfil-top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
+    .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 0; right: 0;
+        background: #D85A30;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .perfil-info h2 { font-size: 18px; font-weight: 800; margin-bottom: 3px; }
+    .perfil-info p  { color: var(--text-muted); font-size: 13px; font-weight: 600; margin-top: 2px; }
+
+    .perfil-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding-top: 14px;
+        border-top: 0.5px solid var(--border);
+    }
+    .stat {
+        text-align: center;
+        padding: 10px 8px;
+        background: var(--bg);
+        border-radius: 10px;
+    }
+    .stat-valor { font-size: 20px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 10px; color: var(--text-muted); font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── BARCA CARD ── */
+    .barca-card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px 18px;
         margin-bottom: 8px;
         border: 0.5px solid var(--border);
         box-shadow: 0 1px 4px var(--shadow);
     }
-    .card h4 { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
-    .card p  { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
-
-    .badge {
-        display: inline-block;
-        padding: 3px 9px;
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 700;
-        margin-top: 8px;
+    .card-route {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.2px;
+        margin-bottom: 4px;
     }
-    .badge-ok       { background: var(--green-light); color: var(--green); }
-    .badge-lotada   { background: var(--red-light);   color: var(--red); }
-    .badge-expirada { background: #f0f0f0; color: #999; }
-    [data-theme="dark"] .badge-expirada { background: #2a2a2a; }
+    .route-arrow { color: var(--text-muted); font-weight: 400; margin: 0 5px; }
+    .card-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+    .meta-sep { margin: 0 4px; opacity: 0.45; }
 
-    .card-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tag-prancha {
+        font-size: 11px; font-weight: 700;
+        color: #097CBA; background: #EBF6FF;
+        padding: 3px 9px; border-radius: 6px;
+    }
+    [data-theme="dark"] .tag-prancha { background: #0a2233; }
+
+    .badge-vagas {
+        font-size: 11px; font-weight: 700;
+        color: #0F6E56; background: #E8F4F0;
+        padding: 3px 9px; border-radius: 8px;
+    }
+    [data-theme="dark"] .badge-vagas { background: #0d2b22; }
+
+    .badge-lotada {
+        font-size: 11px; font-weight: 700;
+        color: var(--red); background: var(--red-light);
+        padding: 3px 9px; border-radius: 8px;
+    }
+    .badge-realizada {
+        font-size: 11px; font-weight: 700;
+        color: var(--text-muted); background: var(--bg);
+        padding: 3px 9px; border-radius: 8px;
+    }
 
     .btn-editar {
-        background: #1C2B35;
+        background: var(--text);
         color: white;
-        padding: 8px 16px;
+        padding: 7px 14px;
         border-radius: 8px;
         text-decoration: none;
-        font-size: 13px;
         font-weight: 700;
+        font-size: 12px;
         transition: opacity 0.15s;
     }
-    .btn-editar:hover { opacity: 0.8; }
-
-    .btn-avaliar {
-        background: #FFF8E1;
-        color: #b8780a;
-        padding: 8px 14px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 700;
-        border: 1px solid #f5d97a;
-        transition: background 0.15s;
-    }
-    .btn-avaliar:hover { background: #fff3cd; }
+    .btn-editar:hover { opacity: 0.78; }
+    [data-theme="dark"] .btn-editar { background: #e6edf3; color: #0d1117; }
 
     .btn-cancelar {
-        background: white;
+        background: transparent;
         color: var(--red);
-        padding: 8px 16px;
+        padding: 7px 14px;
         border-radius: 8px;
         border: 1px solid var(--red);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         cursor: pointer;
-        font-family: inherit;
         transition: background 0.15s;
     }
     .btn-cancelar:hover { background: var(--red-light); }
 
     .empty {
+        text-align: center;
+        padding: 32px 24px;
+        color: var(--text-muted);
+        font-size: 14px;
         background: var(--card);
         border-radius: 12px;
-        padding: 32px;
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 15px;
         border: 0.5px solid var(--border);
+        margin-bottom: 8px;
     }
-    .empty a { color: #2E6B8A; font-weight: 700; text-decoration: none; }
+    .empty a { color: var(--hero, #2E6B8A); font-weight: 700; text-decoration: none; }
+
+    /* FAB igual ao mural */
+    .fab {
+        position: fixed;
+        bottom: 24px; right: 24px;
+        width: 56px; height: 56px;
+        background: #D85A30;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 300;
+        text-decoration: none;
+        box-shadow: 0 4px 16px rgba(216,90,48,0.45);
+        z-index: 99;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .fab:hover { transform: scale(1.08); }
+    .fab:active { transform: scale(0.95); }
 </style>
 {% endblock %}
 
@@ -161,107 +210,120 @@
         {% endfor %}
     {% endwith %}
 
+    <!-- PERFIL -->
     <div class="perfil-card">
-        <div class="avatar-wrap">
-            <div class="avatar">
-                {% if current_user.foto_url %}
-                    <img src="/static/uploads/{{ current_user.foto_url }}" alt="Foto de perfil">
-                {% else %}
-                    🏄
-                {% endif %}
+        <div class="perfil-top">
+            <div class="avatar-wrapper">
+                <div class="avatar">
+                    {% if current_user.foto_url %}
+                        <img src="{{ url_for('static', filename='uploads/' + current_user.foto_url) }}" alt="Foto">
+                    {% else %}
+                        🏄
+                    {% endif %}
+                </div>
+                <form method="POST" action="/editar_perfil" enctype="multipart/form-data" id="form-foto">
+                    <input type="file" name="foto" id="input-foto" accept="image/*" style="display:none"
+                           onchange="document.getElementById('form-foto').submit()">
+                    <button type="button" class="avatar-upload-btn"
+                            onclick="document.getElementById('input-foto').click()">✏️</button>
+                </form>
             </div>
-            <form method="POST" action="/editar_perfil" enctype="multipart/form-data" id="foto-form">
-                <input type="file" name="foto" id="foto-input" accept=".jpg,.jpeg,.png,.webp"
-                       onchange="document.getElementById('foto-form').submit()">
-                <button type="button" class="upload-btn" onclick="document.getElementById('foto-input').click()" title="Mudar foto">✎</button>
-            </form>
+            <div class="perfil-info">
+                <h2>{{ current_user.nome }}</h2>
+                <p>✉️ {{ current_user.email }}</p>
+                <p>📱 {{ current_user.telefone }}</p>
+                <p>🌊 {{ current_user.nivel }}</p>
+            </div>
         </div>
-        <div class="perfil-info">
-            <h2>{{ current_user.nome }}</h2>
-            <p>📱 {{ current_user.telefone }}</p>
-            <p>🌊 Nível: {{ current_user.nivel }}</p>
-            <p>✉️ {{ current_user.email }}</p>
-            {% if current_user.media_avaliacao %}
-                <span class="rating-badge">⭐ {{ current_user.media_avaliacao }}</span>
-            {% endif %}
+        <div class="perfil-stats">
+            <div class="stat">
+                <div class="stat-valor">{{ caronas|length }}</div>
+                <div class="stat-label">Barcas</div>
+            </div>
+            <div class="stat">
+                <div class="stat-valor">{{ reservas|length }}</div>
+                <div class="stat-label">Viagens</div>
+            </div>
+            <div class="stat">
+                <div class="stat-valor">🆕</div>
+                <div class="stat-label">Avaliação</div>
+            </div>
         </div>
     </div>
 
-    <div class="section">
-        <p class="section-title">As minhas barcas</p>
-        {% if caronas %}
-            {% for c in caronas %}
-            <div class="card">
-                <h4>{{ c.ponto_partida }} → {{ c.destino }}</h4>
-                <p>📅 {{ c.data }} às {{ c.hora }}</p>
-                <p>🛹 Prancha: {{ c.tipo_prancha }}</p>
-                <p>👥 {{ c.vagas_totais - c.vagas_disponiveis }}/{{ c.vagas_totais }} passageiros</p>
-                {% if c.expirada %}
-                    <span class="badge badge-expirada">Realizada</span>
-                {% elif c.lotado %}
-                    <span class="badge badge-lotada">Lotada</span>
-                {% else %}
-                    <span class="badge badge-ok">{{ c.vagas_disponiveis }} vagas livres</span>
-                {% endif %}
-                <div class="card-footer">
-                    {% if not c.expirada %}
-                        <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
-                    {% endif %}
+    <!-- AS MINHAS BARCAS -->
+    <p class="section-title">As minhas barcas</p>
+    {% if caronas %}
+        {% for c in caronas %}
+        <div class="barca-card">
+            <div class="card-route">
+                {{ c.ponto_partida }}<span class="route-arrow">→</span>{{ c.destino }}
+            </div>
+            <div class="card-meta">
+                📅 {{ c.data }}<span class="meta-sep">·</span>🕐 {{ c.hora }}<span class="meta-sep">·</span>{{ c.vagas_totais - c.vagas_disponiveis }}/{{ c.vagas_totais }} passageiros
+            </div>
+            <div class="card-bottom">
+                <div class="card-tags">
+                    <span class="tag-prancha">🏄 {{ c.tipo_prancha }}</span>
                     {% if c.expirada %}
-                        {% for r in c.reservas %}
-                            {% if (c.id, r.usuario_id) not in avaliacoes_feitas %}
-                                <a href="/avaliar/{{ c.id }}/{{ r.usuario_id }}" class="btn-avaliar">
-                                    ⭐ Avaliar {{ r.passageiro.nome.split()[0] }}
-                                </a>
-                            {% endif %}
-                        {% endfor %}
+                        <span class="badge-realizada">Realizada</span>
+                    {% elif c.lotado %}
+                        <span class="badge-lotada">Lotada</span>
+                    {% else %}
+                        <span class="badge-vagas">{{ c.vagas_disponiveis }} vagas</span>
                     {% endif %}
                 </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">
-                Ainda não publicaste nenhuma barca.<br><br>
-                <a href="/nova">+ Publicar a primeira barca</a>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="section">
-        <p class="section-title">As minhas reservas</p>
-        {% if reservas %}
-            {% for r in reservas %}
-            <div class="card">
-                <h4>{{ r.carona.ponto_partida }} → {{ r.carona.destino }}</h4>
-                <p>📅 {{ r.carona.data }} às {{ r.carona.hora }}</p>
-                <p>🏄 Motorista: {{ r.carona.motorista.nome }} | 📱 {{ r.carona.motorista.telefone }}</p>
-                {% if r.carona.expirada %}
-                    <span class="badge badge-expirada">Realizada</span>
+                {% if not c.expirada %}
+                    <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
                 {% endif %}
-                <div class="card-footer">
-                    {% if not r.carona.expirada %}
-                        <form method="POST" action="/cancelar_reserva/{{ r.id }}">
-                            <button type="submit" class="btn-cancelar"
-                                onclick="return confirm('Tens a certeza que queres cancelar esta reserva?')">
-                                ✕ Cancelar reserva
-                            </button>
-                        </form>
-                    {% endif %}
-                    {% if r.carona.expirada and (r.carona_id, r.carona.motorista_id) not in avaliacoes_feitas %}
-                        <a href="/avaliar/{{ r.carona_id }}/{{ r.carona.motorista_id }}" class="btn-avaliar">
-                            ⭐ Avaliar motorista
-                        </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            Ainda não publicaste nenhuma barca.<br><br>
+            <a href="/nova">+ Publicar a primeira barca</a>
+        </div>
+    {% endif %}
+
+    <!-- AS MINHAS RESERVAS -->
+    <p class="section-title" style="margin-top: 24px;">As minhas reservas</p>
+    {% if reservas %}
+        {% for r in reservas %}
+        <div class="barca-card">
+            <div class="card-route">
+                {{ r.carona.ponto_partida }}<span class="route-arrow">→</span>{{ r.carona.destino }}
+            </div>
+            <div class="card-meta">
+                📅 {{ r.carona.data }}<span class="meta-sep">·</span>🕐 {{ r.carona.hora }}<span class="meta-sep">·</span>🏄 {{ r.carona.motorista.nome.split()[0] }}
+            </div>
+            <div class="card-bottom">
+                <div class="card-tags">
+                    {% if r.carona.expirada %}
+                        <span class="badge-realizada">Realizada</span>
+                    {% else %}
+                        <span class="badge-vagas">Confirmada</span>
                     {% endif %}
                 </div>
+                {% if not r.carona.expirada %}
+                <form method="POST" action="/cancelar_reserva/{{ r.id }}">
+                    <button type="submit" class="btn-cancelar"
+                        onclick="return confirm('Tens a certeza que queres cancelar?')">
+                        ✕ Cancelar
+                    </button>
+                </form>
+                {% endif %}
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">
-                Ainda não tens reservas.<br><br>
-                <a href="/">Ver barcas disponíveis</a>
-            </div>
-        {% endif %}
-    </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            Ainda não tens reservas.<br><br>
+            <a href="/">Ver barcas disponíveis</a>
+        </div>
+    {% endif %}
 
 </div>
+
+<a href="/nova" class="fab" title="Publicar barca">+</a>
 {% endblock %}
