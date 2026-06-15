@@ -124,6 +124,6 @@ ondago/
 
 Desenvolvido por João Gabriel — instrutor de surf, estudante de ADS e empreendedor.
 
-Começou como projeto da faculdade. Virou algo maior.
+Começou como ideia de projeto em paralelo a faculdade e Virou algo maior.
 
-> *"Nunca deixei de surfar por falta de carro. Mas o que eu mais sinto falta não é só da onda — é da comunidade que o surf sempre teve."*
+
