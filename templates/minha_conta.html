@@ -274,8 +274,12 @@
                     {% endif %}
                 </div>
                 {% if not c.expirada %}
-                    <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
-                {% endif %}
+    <a href="/editar_carona/{{ c.id }}" class="btn-editar">✏️ Editar</a>
+{% else %}
+    <a href="/avaliar/{{ c.id }}" class="btn-editar">⭐ Avaliar</a>
+{% endif %}
+                    
+                
             </div>
         </div>
         {% endfor %}
@@ -305,14 +309,16 @@
                         <span class="badge-vagas">Confirmada</span>
                     {% endif %}
                 </div>
-                {% if not r.carona.expirada %}
-                <form method="POST" action="/cancelar_reserva/{{ r.id }}">
-                    <button type="submit" class="btn-cancelar"
-                        onclick="return confirm('Tens a certeza que queres cancelar?')">
-                        ✕ Cancelar
-                    </button>
-                </form>
-                {% endif %}
+               {% if not r.carona.expirada %}
+<form method="POST" action="/cancelar_reserva/{{ r.id }}">
+    <button type="submit" class="btn-cancelar"
+        onclick="return confirm('Tens a certeza que queres cancelar?')">
+        ✕ Cancelar
+    </button>
+</form>
+{% else %}
+    <a href="/avaliar/{{ r.carona.id }}" class="btn-editar">⭐ Avaliar</a>
+{% endif %}
             </div>
         </div>
         {% endfor %}
@@ -322,6 +328,29 @@
             <a href="/">Ver barcas disponíveis</a>
         </div>
     {% endif %}
+
+</div>
+
+    <!-- APAGAR CONTA -->
+    <p class="section-title" style="margin-top: 32px; color: var(--red);">Zona de perigo</p>
+    <div class="barca-card" style="border-color: var(--red);">
+        <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:12px;">
+            Apagar conta permanentemente. Esta acção não pode ser desfeita.
+        </p>
+        <form method="POST" action="/apagar_conta"
+              onsubmit="return confirm('Tens a certeza absoluta? Todos os teus dados serão eliminados.')">
+            <input type="password" name="senha" placeholder="Confirma a tua senha para apagar" required
+                   style="width:100%; padding:10px 14px; border:1px solid var(--red);
+                          border-radius:8px; font-size:14px; font-family:inherit;
+                          background:var(--bg); color:var(--text); outline:none; margin-bottom:10px;">
+            <button type="submit"
+                    style="background:var(--red); color:white; padding:9px 18px;
+                           border:none; border-radius:8px; font-size:13px; font-weight:700;
+                           font-family:inherit; cursor:pointer;">
+                Apagar conta
+            </button>
+        </form>
+    </div>
 
 </div>
 

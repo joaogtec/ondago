@@ -1,20 +1,39 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from models import db, Usuario, Carona, Reserva, Avaliacao
 from datetime import datetime
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ondago_secret_2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ondago.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+from dotenv import load_dotenv
 import os
 from werkzeug.utils import secure_filename
 from PIL import Image
 
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_key_apenas_para_desenvolvimento')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ondago.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB máximo
+
+db.init_app(app)
+
+# Rate limiting — protege contra ataques de força bruta
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Faz login para continuar.'
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -28,16 +47,23 @@ def salvar_foto(ficheiro, usuario_id):
     img.thumbnail((200, 200))
     img.save(filepath, quality=85)
     return filename
-db.init_app(app)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-login_manager.login_message = 'Faz login para continuar.'
 
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
+
+@app.context_processor
+def utility_processor():
+    def media_avaliacoes(usuario_id, tipo):
+        avals = Avaliacao.query.filter_by(avaliado_id=usuario_id, tipo=tipo).all()
+        if not avals:
+            return None
+        return round(sum(a.nota for a in avals) / len(avals), 1)
+
+    def total_avaliacoes(usuario_id, tipo):
+        return Avaliacao.query.filter_by(avaliado_id=usuario_id, tipo=tipo).count()
+
+    return dict(media_avaliacoes=media_avaliacoes, total_avaliacoes=total_avaliacoes)
 
 @app.route('/')
 def index():
@@ -46,16 +72,23 @@ def index():
     return render_template('index.html', caronas=activas)
 
 @app.route('/registro', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def registro():
     if request.method == 'POST':
-        nome     = request.form['nome']
-        email    = request.form['email']
-        telefone = request.form['telefone']
-        nivel    = request.form['nivel']
-        senha    = request.form['senha']
+        nome     = request.form.get('nome', '').strip()
+        email    = request.form.get('email', '').strip().lower()
+        telefone = request.form.get('telefone', '').strip()
+        nivel    = request.form.get('nivel', 'Iniciante')
+        senha    = request.form.get('senha', '')
 
+        if len(nome) < 2:
+            flash('Nome invalido.', 'erro')
+            return redirect(url_for('registro'))
+        if len(senha) < 8:
+            flash('A senha deve ter pelo menos 8 caracteres.', 'erro')
+            return redirect(url_for('registro'))
         if Usuario.query.filter_by(email=email).first():
-            flash('Este email já está registado.', 'erro')
+            flash('Este email ja esta registado.', 'erro')
             return redirect(url_for('registro'))
 
         usuario = Usuario(nome=nome, email=email, telefone=telefone, nivel=nivel)
@@ -68,10 +101,11 @@ def registro():
     return render_template('registro.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        senha = request.form['senha']
+        email = request.form.get('email', '').strip().lower()
+        senha = request.form.get('senha', '')
         usuario = Usuario.query.filter_by(email=email).first()
 
         if usuario and usuario.check_senha(senha):
@@ -91,18 +125,30 @@ def logout():
 @login_required
 def nova_carona():
     if request.method == 'POST':
-        data_raw = request.form['data']
-        dt = datetime.strptime(data_raw, "%Y-%m-%d")
+        data_raw = request.form.get('data', '')
+        try:
+            dt = datetime.strptime(data_raw, "%Y-%m-%d")
+            if dt < datetime.now():
+                flash('A data tem de ser no futuro.', 'erro')
+                return redirect(url_for('nova_carona'))
+        except ValueError:
+            flash('Data invalida.', 'erro')
+            return redirect(url_for('nova_carona'))
+
         data_formatada = dt.strftime("%d/%m/%Y")
+        vagas = int(request.form.get('vagas', 1))
+        if vagas < 1 or vagas > 8:
+            flash('Numero de vagas invalido.', 'erro')
+            return redirect(url_for('nova_carona'))
 
         carona = Carona(
             motorista_id  = current_user.id,
-            ponto_partida = request.form['origem'],
-            destino       = request.form['destino'],
+            ponto_partida = request.form.get('origem', '').strip(),
+            destino       = request.form.get('destino', '').strip(),
             data          = data_formatada,
-            hora          = request.form['hora'],
-            vagas_totais  = int(request.form['vagas']),
-            tipo_prancha  = request.form['prancha']
+            hora          = request.form.get('hora', ''),
+            vagas_totais  = vagas,
+            tipo_prancha  = request.form.get('prancha', 'Qualquer')
         )
         db.session.add(carona)
         db.session.commit()
@@ -127,6 +173,8 @@ def reservar(carona_id):
             flash('Barca lotada!', 'erro')
         elif carona.motorista_id == current_user.id:
             flash('Nao podes reservar a tua propria barca.', 'erro')
+        elif carona.expirada:
+            flash('Esta barca ja expirou.', 'erro')
         else:
             reserva = Reserva(carona_id=carona_id, usuario_id=current_user.id)
             db.session.add(reserva)
@@ -136,17 +184,6 @@ def reservar(carona_id):
 
     return render_template('reservar.html', carona=carona)
 
-@app.route('/minha_conta')
-@login_required
-def minha_conta():
-    minhas_caronas = Carona.query.filter_by(motorista_id=current_user.id).all()
-    minhas_reservas = Reserva.query.filter_by(usuario_id=current_user.id).all()
-    avaliacoes_feitas = {
-        (a.carona_id, a.avaliado_id)
-        for a in Avaliacao.query.filter_by(avaliador_id=current_user.id).all()
-    }
-    return render_template('minha_conta.html', caronas=minhas_caronas, reservas=minhas_reservas,
-                           avaliacoes_feitas=avaliacoes_feitas)
 @app.route('/cancelar_reserva/<int:reserva_id>', methods=['POST'])
 @login_required
 def cancelar_reserva(reserva_id):
@@ -165,7 +202,6 @@ def cancelar_reserva(reserva_id):
     flash('Reserva cancelada com sucesso.', 'sucesso')
     return redirect(url_for('minha_conta'))
 
-
 @app.route('/editar_carona/<int:carona_id>', methods=['GET', 'POST'])
 @login_required
 def editar_carona(carona_id):
@@ -180,93 +216,114 @@ def editar_carona(carona_id):
         return redirect(url_for('minha_conta'))
 
     if request.method == 'POST':
-        novas_vagas = int(request.form['vagas'])
+        novas_vagas = int(request.form.get('vagas', 1))
 
         if novas_vagas < len(carona.reservas):
             flash(f'Ja tens {len(carona.reservas)} reservas. Nao podes reduzir abaixo disso.', 'erro')
             return redirect(url_for('editar_carona', carona_id=carona_id))
 
-        data_raw = request.form['data']
-        dt = datetime.strptime(data_raw, "%Y-%m-%d")
+        data_raw = request.form.get('data', '')
+        try:
+            dt = datetime.strptime(data_raw, "%Y-%m-%d")
+        except ValueError:
+            flash('Data invalida.', 'erro')
+            return redirect(url_for('editar_carona', carona_id=carona_id))
 
-        carona.ponto_partida = request.form['origem']
-        carona.destino       = request.form['destino']
+        carona.ponto_partida = request.form.get('origem', '').strip()
+        carona.destino       = request.form.get('destino', '').strip()
         carona.data          = dt.strftime("%d/%m/%Y")
-        carona.hora          = request.form['hora']
+        carona.hora          = request.form.get('hora', '')
         carona.vagas_totais  = novas_vagas
-        carona.tipo_prancha  = request.form['prancha']
+        carona.tipo_prancha  = request.form.get('prancha', 'Qualquer')
 
         db.session.commit()
         flash('Barca actualizada!', 'sucesso')
         return redirect(url_for('minha_conta'))
 
     return render_template('editar_carona.html', carona=carona)
-@app.route('/editar_perfil', methods=['GET', 'POST'])
+
+@app.route('/editar_perfil', methods=['POST'])
 @login_required
 def editar_perfil():
-    if request.method == 'POST':
-        if 'foto' in request.files:
-            ficheiro = request.files['foto']
-            if ficheiro and allowed_file(ficheiro.filename):
-                filename = salvar_foto(ficheiro, current_user.id)
-                current_user.foto_url = filename
-                db.session.commit()
-                flash('Foto actualizada com sucesso!', 'sucesso')
-
+    if 'foto' in request.files:
+        ficheiro = request.files['foto']
+        if ficheiro and allowed_file(ficheiro.filename):
+            filename = salvar_foto(ficheiro, current_user.id)
+            current_user.foto_url = filename
+            db.session.commit()
+            flash('Foto actualizada com sucesso!', 'sucesso')
     return redirect(url_for('minha_conta'))
-@app.route('/avaliar/<int:carona_id>/<int:avaliado_id>', methods=['GET', 'POST'])
+
+@app.route('/minha_conta')
 @login_required
-def avaliar(carona_id, avaliado_id):
+def minha_conta():
+    minhas_caronas  = Carona.query.filter_by(motorista_id=current_user.id).all()
+    minhas_reservas = Reserva.query.filter_by(usuario_id=current_user.id).all()
+    return render_template('minha_conta.html', caronas=minhas_caronas, reservas=minhas_reservas)
+
+@app.route('/avaliar/<int:carona_id>', methods=['GET', 'POST'])
+@login_required
+def avaliar(carona_id):
     carona = Carona.query.get_or_404(carona_id)
-    avaliado = Usuario.query.get_or_404(avaliado_id)
 
     if not carona.expirada:
-        flash('Só podes avaliar depois da carona ter sido realizada.', 'erro')
+        flash('So podes avaliar apos a carona ser realizada.', 'erro')
         return redirect(url_for('minha_conta'))
 
-    if avaliado_id == current_user.id:
-        flash('Não podes avaliar-te a ti mesmo.', 'erro')
-        return redirect(url_for('minha_conta'))
-
-    eh_motorista = carona.motorista_id == current_user.id
-    eh_passageiro = Reserva.query.filter_by(carona_id=carona_id, usuario_id=current_user.id).first() is not None
-
-    if not eh_motorista and not eh_passageiro:
-        flash('Não participaste nesta carona.', 'erro')
-        return redirect(url_for('minha_conta'))
-
-    avaliado_eh_motorista = carona.motorista_id == avaliado_id
-    avaliado_eh_passageiro = Reserva.query.filter_by(carona_id=carona_id, usuario_id=avaliado_id).first() is not None
-
-    if not avaliado_eh_motorista and not avaliado_eh_passageiro:
-        flash('Esta pessoa não participou nesta carona.', 'erro')
-        return redirect(url_for('minha_conta'))
-
-    if Avaliacao.query.filter_by(avaliador_id=current_user.id, avaliado_id=avaliado_id, carona_id=carona_id).first():
-        flash('Já avaliaste esta pessoa nesta carona.', 'erro')
-        return redirect(url_for('minha_conta'))
+    if current_user.id == carona.motorista_id:
+        pessoas_a_avaliar = [r.passageiro for r in carona.reservas]
+        tipo = 'passageiro'
+    else:
+        reserva = Reserva.query.filter_by(
+            carona_id=carona_id,
+            usuario_id=current_user.id
+        ).first()
+        if not reserva:
+            flash('Nao fizeste parte desta carona.', 'erro')
+            return redirect(url_for('minha_conta'))
+        pessoas_a_avaliar = [carona.motorista]
+        tipo = 'motorista'
 
     if request.method == 'POST':
-        nota = float(request.form['nota'])
-        if nota < 1 or nota > 5:
-            flash('Nota inválida.', 'erro')
-            return redirect(url_for('avaliar', carona_id=carona_id, avaliado_id=avaliado_id))
-        avaliacao = Avaliacao(
-            avaliador_id=current_user.id,
-            avaliado_id=avaliado_id,
-            carona_id=carona_id,
-            nota=nota,
-            comentario=request.form.get('comentario', '').strip(),
-            tipo='motorista' if avaliado_eh_motorista else 'passageiro'
-        )
-        db.session.add(avaliacao)
+        for pessoa in pessoas_a_avaliar:
+            ja_avaliou = Avaliacao.query.filter_by(
+                avaliador_id=current_user.id,
+                avaliado_id=pessoa.id,
+                carona_id=carona_id
+            ).first()
+            if not ja_avaliou:
+                nota = max(1.0, min(5.0, float(request.form.get(f'nota_{pessoa.id}', 5))))
+                comentario = request.form.get(f'comentario_{pessoa.id}', '').strip()[:300]
+                avaliacao = Avaliacao(
+                    avaliador_id=current_user.id,
+                    avaliado_id=pessoa.id,
+                    carona_id=carona_id,
+                    nota=nota,
+                    comentario=comentario,
+                    tipo=tipo
+                )
+                db.session.add(avaliacao)
         db.session.commit()
-        flash('Avaliação enviada!', 'sucesso')
+        flash('Avaliacao enviada! Obrigado.', 'sucesso')
         return redirect(url_for('minha_conta'))
 
-    return render_template('avaliar.html', carona=carona, avaliado=avaliado)
+    return render_template('avaliar.html', carona=carona, pessoas=pessoas_a_avaliar, tipo=tipo)
+
+@app.route('/apagar_conta', methods=['POST'])
+@login_required
+def apagar_conta():
+    senha = request.form.get('senha', '')
+    if not current_user.check_senha(senha):
+        flash('Senha incorrecta. A conta não foi apagada.', 'erro')
+        return redirect(url_for('minha_conta'))
+    usuario = Usuario.query.get(current_user.id)
+    logout_user()
+    db.session.delete(usuario)
+    db.session.commit()
+    flash('A tua conta foi apagada.', 'sucesso')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=False)
