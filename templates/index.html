@@ -130,6 +130,17 @@
         border-radius: 8px;
     }
 
+    .badge-imediata {
+        font-size: 11px;
+        font-weight: 700;
+        color: #D85A30;
+        background: #FFF3EE;
+        padding: 3px 9px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
+    [data-theme="dark"] .badge-imediata { background: #2d1206; }
+
     .btn-reservar {
         background: var(--text);
         color: white;
@@ -214,15 +225,22 @@
             </div>
 
             <div class="card-meta">
-                📅 {{ c.data }}
-                <span class="meta-sep">·</span>
-                🕐 {{ c.hora }}
+                {% if c.saida_imediata %}
+                    🤙 A sair agora!
+                {% else %}
+                    📅 {{ c.data }}
+                    <span class="meta-sep">·</span>
+                    🕐 {{ c.hora }}
+                {% endif %}
                 <span class="meta-sep">·</span>
                 {{ c.motorista.nome.split()[0] }}{% if c.motorista.media_avaliacao %}<span class="meta-rating">⭐ {{ c.motorista.media_avaliacao }}</span>{% endif %}
             </div>
 
             <div class="card-bottom">
                 <div class="card-tags">
+                    {% if c.saida_imediata %}
+                        <span class="badge-imediata">🤙 Saindo agora!</span>
+                    {% endif %}
                     <span class="tag-prancha">🏄 {{ c.tipo_prancha }}</span>
                     {% if c.lotado %}
                         <span class="badge-lotada">Lotada</span>

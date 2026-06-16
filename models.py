@@ -17,6 +17,9 @@ class Usuario(UserMixin, db.Model):
     senha_hash = db.Column(db.String(256), nullable=False)
     criado_em  = db.Column(db.DateTime, default=datetime.utcnow)
 
+    email_verificado   = db.Column(db.Boolean, default=False)
+    token_verificacao  = db.Column(db.String(100), nullable=True)
+
     caronas    = db.relationship('Carona', backref='motorista', lazy=True)
     reservas   = db.relationship('Reserva', backref='passageiro', lazy=True)
 
@@ -41,8 +44,9 @@ class Carona(db.Model):
     data          = db.Column(db.String(10), nullable=False)
     hora          = db.Column(db.String(5), nullable=False)
     vagas_totais  = db.Column(db.Integer, nullable=False)
-    tipo_prancha  = db.Column(db.String(30), default='Qualquer')
-    criado_em     = db.Column(db.DateTime, default=datetime.utcnow)
+    tipo_prancha   = db.Column(db.String(30), default='Qualquer')
+    saida_imediata = db.Column(db.Boolean, default=False)
+    criado_em      = db.Column(db.DateTime, default=datetime.utcnow)
 
     reservas      = db.relationship('Reserva', backref='carona', lazy=True)
 

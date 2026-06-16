@@ -2,26 +2,44 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_mail import Mail, Message
 from models import db, Usuario, Carona, Reserva, Avaliacao
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
+import secrets
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 from PIL import Image
 
 load_dotenv()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_key_apenas_para_desenvolvimento')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ondago.db'
+
+database_url = os.getenv('DATABASE_URL', 'sqlite:///ondago.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_EMAIL')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_EMAIL')
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db.init_app(app)
+with app.app_context():
+    db.create_all()
+mail = Mail(app)
 
 # Rate limiting — protege contra ataques de força bruta
 limiter = Limiter(
@@ -37,6 +55,19 @@ login_manager.login_message = 'Faz login para continuar.'
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def enviar_email_verificacao(usuario):
+    link = url_for('verificar_email', token=usuario.token_verificacao, _external=True)
+    msg = Message(
+        subject='Confirma o teu email - OndaGo',
+        recipients=[usuario.email],
+        body=(
+            f'Ola {usuario.nome},\n\n'
+            f'Confirma o teu email para activar a tua conta OndaGo:\n{link}\n\n'
+            'Se nao foste tu a criar esta conta, ignora este email.'
+        )
+    )
+    mail.send(msg)
 
 def salvar_foto(ficheiro, usuario_id):
     ext = ficheiro.filename.rsplit('.', 1)[1].lower()
@@ -93,12 +124,43 @@ def registro():
 
         usuario = Usuario(nome=nome, email=email, telefone=telefone, nivel=nivel)
         usuario.set_senha(senha)
+        usuario.token_verificacao = secrets.token_urlsafe(32)
         db.session.add(usuario)
         db.session.commit()
-        login_user(usuario)
-        return redirect(url_for('index'))
+        enviar_email_verificacao(usuario)
+        return render_template('verificar_email.html', email=usuario.email)
 
     return render_template('registro.html')
+
+@app.route('/verificar-email/<token>')
+def verificar_email(token):
+    usuario = Usuario.query.filter_by(token_verificacao=token).first()
+    if not usuario:
+        flash('Link de verificacao invalido ou expirado.', 'erro')
+        return redirect(url_for('login'))
+
+    usuario.email_verificado = True
+    usuario.token_verificacao = None
+    db.session.commit()
+    login_user(usuario)
+    flash(f'Bem-vindo, {usuario.nome}! O teu email foi confirmado.', 'sucesso')
+    return redirect(url_for('index'))
+
+@app.route('/reenviar_verificacao', methods=['POST'])
+@limiter.limit("5 per minute")
+def reenviar_verificacao():
+    email = request.form.get('email', '').strip().lower()
+    usuario = Usuario.query.filter_by(email=email).first()
+
+    if usuario and not usuario.email_verificado:
+        usuario.token_verificacao = secrets.token_urlsafe(32)
+        db.session.commit()
+        enviar_email_verificacao(usuario)
+        flash('Email de verificacao reenviado.', 'sucesso')
+    else:
+        flash('Nao foi possivel reenviar o email de verificacao.', 'erro')
+
+    return render_template('verificar_email.html', email=email)
 
 @app.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
@@ -109,6 +171,9 @@ def login():
         usuario = Usuario.query.filter_by(email=email).first()
 
         if usuario and usuario.check_senha(senha):
+            if not usuario.email_verificado:
+                flash('Verifica o teu email primeiro.', 'erro')
+                return render_template('verificar_email.html', email=usuario.email)
             login_user(usuario)
             return redirect(url_for('index'))
         flash('Email ou senha incorretos.', 'erro')
@@ -125,30 +190,40 @@ def logout():
 @login_required
 def nova_carona():
     if request.method == 'POST':
-        data_raw = request.form.get('data', '')
-        try:
-            dt = datetime.strptime(data_raw, "%Y-%m-%d")
-            if dt < datetime.now():
-                flash('A data tem de ser no futuro.', 'erro')
-                return redirect(url_for('nova_carona'))
-        except ValueError:
-            flash('Data invalida.', 'erro')
-            return redirect(url_for('nova_carona'))
+        saida_imediata = request.form.get('saida_imediata') == 'on'
 
-        data_formatada = dt.strftime("%d/%m/%Y")
+        if saida_imediata:
+            now = datetime.now()
+            data_formatada = now.strftime("%d/%m/%Y")
+            hora_formatada = now.strftime("%H:%M")
+        else:
+            data_raw = request.form.get('data', '')
+            hora_raw = request.form.get('hora', '00:00')
+            try:
+                dt = datetime.strptime(f"{data_raw} {hora_raw}", "%Y-%m-%d %H:%M")
+                if dt < datetime.now() - timedelta(minutes=30):
+                    flash('A data e hora nao podem ser mais de 30 minutos no passado.', 'erro')
+                    return redirect(url_for('nova_carona'))
+            except ValueError:
+                flash('Data ou hora invalida.', 'erro')
+                return redirect(url_for('nova_carona'))
+            data_formatada = dt.strftime("%d/%m/%Y")
+            hora_formatada = hora_raw
+
         vagas = int(request.form.get('vagas', 1))
         if vagas < 1 or vagas > 8:
             flash('Numero de vagas invalido.', 'erro')
             return redirect(url_for('nova_carona'))
 
         carona = Carona(
-            motorista_id  = current_user.id,
-            ponto_partida = request.form.get('origem', '').strip(),
-            destino       = request.form.get('destino', '').strip(),
-            data          = data_formatada,
-            hora          = request.form.get('hora', ''),
-            vagas_totais  = vagas,
-            tipo_prancha  = request.form.get('prancha', 'Qualquer')
+            motorista_id   = current_user.id,
+            ponto_partida  = request.form.get('origem', '').strip(),
+            destino        = request.form.get('destino', '').strip(),
+            data           = data_formatada,
+            hora           = hora_formatada,
+            vagas_totais   = vagas,
+            tipo_prancha   = request.form.get('prancha', 'Qualquer'),
+            saida_imediata = saida_imediata
         )
         db.session.add(carona)
         db.session.commit()
@@ -223,16 +298,20 @@ def editar_carona(carona_id):
             return redirect(url_for('editar_carona', carona_id=carona_id))
 
         data_raw = request.form.get('data', '')
+        hora_raw = request.form.get('hora', '00:00')
         try:
-            dt = datetime.strptime(data_raw, "%Y-%m-%d")
+            dt = datetime.strptime(f"{data_raw} {hora_raw}", "%Y-%m-%d %H:%M")
+            if dt < datetime.now() - timedelta(minutes=30):
+                flash('A data e hora nao podem ser mais de 30 minutos no passado.', 'erro')
+                return redirect(url_for('editar_carona', carona_id=carona_id))
         except ValueError:
-            flash('Data invalida.', 'erro')
+            flash('Data ou hora invalida.', 'erro')
             return redirect(url_for('editar_carona', carona_id=carona_id))
 
         carona.ponto_partida = request.form.get('origem', '').strip()
         carona.destino       = request.form.get('destino', '').strip()
         carona.data          = dt.strftime("%d/%m/%Y")
-        carona.hora          = request.form.get('hora', '')
+        carona.hora          = hora_raw
         carona.vagas_totais  = novas_vagas
         carona.tipo_prancha  = request.form.get('prancha', 'Qualquer')
 
@@ -335,6 +414,4 @@ def apagar_conta():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=False)

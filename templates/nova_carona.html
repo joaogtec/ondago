@@ -57,6 +57,74 @@
     }
     input:focus, select:focus { border-color: #15B8C8; }
 
+    /* ── Toggle Saída Imediata ── */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        background: var(--bg);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        user-select: none;
+    }
+    .toggle-row:hover { border-color: #D85A30; }
+    .toggle-row.active { border-color: #D85A30; background: #FFF3EE; }
+    [data-theme="dark"] .toggle-row.active { background: #2d1206; }
+    .toggle-text { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .toggle-sub  { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+    label.switch {
+        position: relative;
+        width: 44px;
+        height: 26px;
+        flex-shrink: 0;
+        display: block;
+        margin-bottom: 0;
+        text-transform: none;
+        letter-spacing: 0;
+        cursor: pointer;
+    }
+    label.switch input { display: none; }
+    .slider {
+        position: absolute;
+        inset: 0;
+        background: var(--border);
+        border-radius: 13px;
+        transition: background 0.2s;
+    }
+    .slider::before {
+        content: '';
+        position: absolute;
+        width: 20px; height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        top: 3px; left: 3px;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    label.switch input:checked + .slider { background: #D85A30; }
+    label.switch input:checked + .slider::before { transform: translateX(18px); }
+
+    .agora-banner {
+        display: none;
+        background: #FFF3EE;
+        border: 1.5px solid #D85A30;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 800;
+        color: #D85A30;
+        margin-bottom: 16px;
+        letter-spacing: -0.3px;
+    }
+    [data-theme="dark"] .agora-banner { background: #2d1206; }
+
     .btn-submit {
         width: 100%;
         background: #1C2B35;
@@ -91,14 +159,29 @@
                     <input type="text" name="destino" placeholder="Ex: Peniche" required>
                 </div>
             </div>
-            <div class="form-row">
+            <!-- Toggle Saída Imediata -->
+            <div class="toggle-row" id="toggle-row" onclick="document.getElementById('saida_imediata').click()">
+                <div>
+                    <div class="toggle-text">Saída Imediata 🤙</div>
+                    <div class="toggle-sub">A sair já — data e hora automáticas</div>
+                </div>
+                <label class="switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" name="saida_imediata" id="saida_imediata"
+                           onchange="onToggleImediata(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="agora-banner" id="agora-banner">🤙 A sair agora!</div>
+
+            <div class="form-row" id="campos-datetime">
                 <div class="form-group">
                     <label>Data</label>
-                    <input type="date" name="data" required>
+                    <input type="date" name="data" id="input-data" required>
                 </div>
                 <div class="form-group">
                     <label>Hora</label>
-                    <input type="time" name="hora" required>
+                    <input type="time" name="hora" id="input-hora" required>
                 </div>
             </div>
             <hr class="divider">
@@ -122,4 +205,29 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function onToggleImediata(cb) {
+    const campos    = document.getElementById('campos-datetime');
+    const banner    = document.getElementById('agora-banner');
+    const row       = document.getElementById('toggle-row');
+    const inputData = document.getElementById('input-data');
+    const inputHora = document.getElementById('input-hora');
+    if (cb.checked) {
+        campos.style.display = 'none';
+        banner.style.display = 'block';
+        row.classList.add('active');
+        inputData.required = false;
+        inputHora.required = false;
+    } else {
+        campos.style.display = '';
+        banner.style.display = 'none';
+        row.classList.remove('active');
+        inputData.required = true;
+        inputHora.required = true;
+    }
+}
+</script>
 {% endblock %}

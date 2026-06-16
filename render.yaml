@@ -1,0 +1,26 @@
+databases:
+  - name: ondago-db
+    plan: free
+    databaseName: ondago
+    user: ondago
+
+services:
+  - type: web
+    name: ondago
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ondago-db
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_EMAIL
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
