@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_mail import Mail, Message
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail as SendGridMail
 from models import db, Usuario, Carona, Reserva, Avaliacao
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -29,12 +30,8 @@ if database_url.startswith('postgresql://'):
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = _engine_opts
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_EMAIL')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_EMAIL')
+MAIL_FROM = os.getenv('MAIL_EMAIL')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
@@ -43,7 +40,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db.init_app(app)
 with app.app_context():
     db.create_all()
-mail = Mail(app)
 
 # Rate limiting — protege contra ataques de força bruta
 limiter = Limiter(
@@ -62,16 +58,17 @@ def allowed_file(filename):
 
 def enviar_email_verificacao(usuario):
     link = url_for('verificar_email', token=usuario.token_verificacao, _external=True)
-    msg = Message(
+    msg = SendGridMail(
+        from_email=MAIL_FROM,
+        to_emails=usuario.email,
         subject='Confirma o teu email - OndaGo',
-        recipients=[usuario.email],
-        body=(
+        plain_text_content=(
             f'Ola {usuario.nome},\n\n'
             f'Confirma o teu email para activar a tua conta OndaGo:\n{link}\n\n'
             'Se nao foste tu a criar esta conta, ignora este email.'
         )
     )
-    mail.send(msg)
+    SendGridAPIClient(SENDGRID_API_KEY).send(msg)
 
 def salvar_foto(ficheiro, usuario_id):
     ext = ficheiro.filename.rsplit('.', 1)[1].lower()
