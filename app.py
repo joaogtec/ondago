@@ -23,11 +23,10 @@ if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-    'connect_args': {'sslmode': 'require'}
-}
+_engine_opts = {'pool_pre_ping': True, 'pool_recycle': 300}
+if database_url.startswith('postgresql://'):
+    _engine_opts['connect_args'] = {'sslmode': 'require'}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = _engine_opts
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
