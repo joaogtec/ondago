@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail as SendGridMail
+import resend
 from models import db, Usuario, Carona, Reserva, Avaliacao
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -30,8 +29,7 @@ if database_url.startswith('postgresql://'):
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = _engine_opts
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
-MAIL_FROM = os.getenv('MAIL_EMAIL')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY')
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
@@ -57,18 +55,17 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def enviar_email_verificacao(usuario):
-    link = url_for('verificar_email', token=usuario.token_verificacao, _external=True)
-    msg = SendGridMail(
-        from_email=MAIL_FROM,
-        to_emails=usuario.email,
-        subject='Confirma o teu email - OndaGo',
-        plain_text_content=(
-            f'Ola {usuario.nome},\n\n'
-            f'Confirma o teu email para activar a tua conta OndaGo:\n{link}\n\n'
-            'Se nao foste tu a criar esta conta, ignora este email.'
-        )
-    )
-    SendGridAPIClient(SENDGRID_API_KEY).send(msg)
+    resend.api_key = RESEND_API_KEY
+    token = secrets.token_urlsafe(32)
+    usuario.token_verificacao = token
+    db.session.commit()
+    link = url_for('verificar_email', token=token, _external=True)
+    resend.Emails.send({
+        "from": "OndaGo <onboarding@resend.dev>",
+        "to": usuario.email,
+        "subject": "Confirma o teu email - OndaGo",
+        "html": f'<p>Clica no link para activar a tua conta:</p><a href="{link}">Activar conta</a>'
+    })
 
 def salvar_foto(ficheiro, usuario_id):
     ext = ficheiro.filename.rsplit('.', 1)[1].lower()
